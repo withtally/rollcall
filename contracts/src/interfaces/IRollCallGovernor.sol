@@ -3,14 +3,22 @@
 
 pragma solidity ^0.8.0;
 
-import "../utils/introspection/ERC165.sol";
+import "openzeppelin-contracts/utils/introspection/ERC165.sol";
 
 /**
  * @dev Interface of the {Governor} core.
  *
  * _Available since v4.3._
  */
-abstract contract IGovernor is IERC165 {
+abstract contract IRollCallGovernor is IERC165 {
+    struct Proposal {
+        bytes32 root;
+        uint64 start;
+        uint64 end;
+        bool executed;
+        bool canceled;
+    }
+
     enum ProposalState {
         Pending,
         Active,
@@ -58,6 +66,22 @@ abstract contract IGovernor is IERC165 {
      * @dev Version of the governor instance (used in building the ERC712 domain separator). Default: "1"
      */
     function version() public view virtual returns (string memory);
+
+    /**
+     * @notice module:core
+     * @dev A governance proposal.
+     */
+    function proposal(uint256 id) public view virtual returns (Proposal memory);
+
+    /**
+     * @notice module:core
+     */
+    function token() external view virtual returns (address);
+
+    /**
+     * @notice module:core
+     */
+    function slot() external view virtual returns (uint256);
 
     /**
      * @notice module:voting
@@ -109,7 +133,7 @@ abstract contract IGovernor is IERC165 {
         public
         view
         virtual
-        returns (uint256);
+        returns (bytes32);
 
     /**
      * @notice module:core
@@ -124,17 +148,7 @@ abstract contract IGovernor is IERC165 {
 
     /**
      * @notice module:user-config
-     * @dev Delay, in number of block, between the proposal is created and the vote starts. This can be increassed to
-     * leave time for users to buy voting power, of delegate it, before the voting of a proposal starts.
-     */
-    function votingDelay() public view virtual returns (uint256);
-
-    /**
-     * @notice module:user-config
      * @dev Delay, in number of blocks, between the vote start and vote ends.
-     *
-     * NOTE: The {votingDelay} can delay the start of the vote. This must be considered when setting the voting
-     * duration compared to the voting delay.
      */
     function votingPeriod() public view virtual returns (uint256);
 
@@ -148,12 +162,26 @@ abstract contract IGovernor is IERC165 {
     function quorum(uint256 blockNumber) public view virtual returns (uint256);
 
     /**
-     * @dev Create a new proposal. Vote start {IGovernor-votingDelay} blocks after the proposal is created and ends
+     * @notice module:reputation
+     * @dev Voting power of an `account` at a specific `blockNumber`.
+     *
+     * Note: this can be implemented in a number of ways, for example by reading the delegated balance from one (or
+     * multiple), {ERC20Votes} tokens.
+     */
+    function getVotes(address account, uint256 blockNumber)
+        public
+        view
+        virtual
+        returns (uint256);
+
+    /**
+     * @dev Create a new proposal. Vote start after the proposal is created and ends
      * {IGovernor-votingPeriod} blocks after the voting starts.
      *
      * Emits a {ProposalCreated} event.
      */
     function propose(
+        bytes memory blockHeaderRLP,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
