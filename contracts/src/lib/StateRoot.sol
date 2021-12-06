@@ -71,7 +71,7 @@ library StateRoot {
      * @dev Extract state root from block header, verifying block hash
      */
     function get(bytes memory blockHeaderRLP, bytes32 blockHash)
-        public
+        internal
         pure
         returns (bytes32 stateRoot)
     {

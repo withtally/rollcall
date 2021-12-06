@@ -11,6 +11,7 @@ import {IERC165} from "openzeppelin-contracts/utils/introspection/IERC165.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
+import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 
 /**
@@ -47,11 +48,9 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     /**
      * @dev Sets the value for {name} and {version}
      */
-    constructor(string memory name_, address initiator_)
-        EIP712(name_, version())
-    {
+    constructor(string memory name_, address l1_) EIP712(name_, version()) {
         _name = name_;
-        _bridge = initiator_;
+        _bridge = l1_;
     }
 
     /**
@@ -120,13 +119,32 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         bytes32 root,
         uint64 start,
         uint64 end
-    ) external override onlyBridge {
-        Proposal storage proposal_ = _proposals[governor][id];
-        proposal_.token = token;
-        proposal_.slot = slot;
-        proposal_.root = root;
-        proposal_.start = start;
-        proposal_.end = end;
+    ) external override onlyL1 {
+        Proposal storage proposal = _proposals[governor][id];
+        proposal.token = token;
+        proposal.slot = slot;
+        proposal.root = root;
+        proposal.start = start;
+        proposal.end = end;
+    }
+
+    function finalize(address governor, uint256 id) external {
+        Proposal memory proposal = _proposals[governor][id];
+        // TODO: Use L1 block number
+        require(proposal.end < block.number, "Voter: voting in progress");
+
+        bytes memory message = abi.encodeWithSelector(
+            IRollCallGovernor.finalize.selector,
+            governor,
+            id
+            // slot,
+            // id,
+            // proposal.root,
+            // proposal.start,
+            // proposal.end
+        );
+
+        _cdm.sendMessage(_bridge, message, 1000000);
     }
 
     /**
@@ -214,9 +232,9 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev Throws if called by any account other than the l1 bridge.
+     * @dev Throws if called by any account other than the l1 l1.
      */
-    modifier onlyBridge() {
+    modifier onlyL1() {
         require(
             msg.sender == address(_cdm) &&
                 _cdm.xDomainMessageSender() == _bridge

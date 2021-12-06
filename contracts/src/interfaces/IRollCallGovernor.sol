@@ -162,31 +162,21 @@ abstract contract IRollCallGovernor is IERC165 {
     function quorum(uint256 blockNumber) public view virtual returns (uint256);
 
     /**
-     * @notice module:reputation
-     * @dev Voting power of an `account` at a specific `blockNumber`.
-     *
-     * Note: this can be implemented in a number of ways, for example by reading the delegated balance from one (or
-     * multiple), {ERC20Votes} tokens.
-     */
-    function getVotes(address account, uint256 blockNumber)
-        public
-        view
-        virtual
-        returns (uint256);
-
-    /**
      * @dev Create a new proposal. Vote start after the proposal is created and ends
      * {IGovernor-votingPeriod} blocks after the voting starts.
      *
      * Emits a {ProposalCreated} event.
      */
     function propose(
+        uint256 snapshot,
         bytes memory blockHeaderRLP,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
     ) public virtual returns (uint256 proposalId);
+
+    function finalize(address governor, uint256 id) external virtual;
 
     /**
      * @dev Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the

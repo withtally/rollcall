@@ -27,7 +27,6 @@ interface Token {
  * This contract is abstract and requires several function to be implemented in various modules:
  *
  * - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
- * - A voting module must implement {getVotes}
  * - Additionanly, the {votingPeriod} must also be implemented
  *
  */
@@ -65,12 +64,12 @@ abstract contract RollCallGovernor is
         string memory name_,
         address token_,
         uint256 slot_,
-        IRollCallBridge bridge_
+        address bridge_
     ) EIP712(name_, version()) {
         _name = name_;
         token = token_;
         slot = slot_;
-        _bridge = bridge_;
+        _bridge = IRollCallBridge(bridge_);
     }
 
     /**
@@ -258,6 +257,7 @@ abstract contract RollCallGovernor is
      * @dev See {IRollCallGovernor-propose}.
      */
     function propose(
+        uint256 snapshot,
         bytes memory blockHeaderRLP,
         address[] memory targets,
         uint256[] memory values,
@@ -292,10 +292,7 @@ abstract contract RollCallGovernor is
         uint64 start = block.number.toUint64();
         uint64 deadline = start + votingPeriod().toUint64();
 
-        proposal_.root = StateRoot.get(
-            blockHeaderRLP,
-            blockhash(block.number - 1)
-        );
+        proposal_.root = StateRoot.get(blockHeaderRLP, blockhash(snapshot));
         proposal_.start = start;
         proposal_.end = deadline;
 
@@ -315,6 +312,8 @@ abstract contract RollCallGovernor is
 
         return proposalId;
     }
+
+    function finalize(address governor, uint256 id) external override {}
 
     /**
      * @dev See {IRollCallGovernor-execute}.
