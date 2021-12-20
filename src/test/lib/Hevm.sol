@@ -1,28 +1,51 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-abstract contract Hevm {
-    // sets the block timestamp to x
-    function warp(uint256 x) public virtual;
+interface Vm {
+    // Set block.timestamp (newTimestamp)
+    function warp(uint256) external;
 
-    // sets the block number to x
-    function roll(uint256 x) public virtual;
+    // Set block.height (newHeight)
+    function roll(uint256) external;
 
-    // sets the slot loc of contract c to val
+    // Loads a storage slot from an address (who, slot)
+    function load(address, bytes32) external returns (bytes32);
+
+    // Stores a value to an address' storage slot, (who, slot, value)
     function store(
-        address c,
-        bytes32 loc,
-        bytes32 val
-    ) public virtual;
+        address,
+        bytes32,
+        bytes32
+    ) external;
 
+    // Signs data, (privateKey, digest) => (r, v, s)
     function sign(uint256, bytes32)
-        public
-        virtual
+        external
         returns (
             uint8,
             bytes32,
             bytes32
         );
 
-    function ffi(string[] calldata) external virtual returns (bytes memory);
+    // Gets address for a given private key, (privateKey) => (address)
+    function addr(uint256) external returns (address);
+
+    // Performs a foreign function call via terminal, (stringInputs) => (result)
+    function ffi(string[] calldata) external returns (bytes memory);
+
+    // Calls another contract with a specified `msg.sender`, (newSender, contract, input) => (success, returnData)
+    function prank(
+        address,
+        address,
+        bytes calldata
+    ) external payable returns (bool, bytes memory);
+
+    // Sets an address' balance, (who, newBalance)
+    function deal(address, uint256) external;
+
+    // Sets an address' code, (who, newCode)
+    function etch(address, bytes calldata) external;
+
+    // Expects an error on next call
+    function expectRevert(bytes calldata) external;
 }

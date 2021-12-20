@@ -5,7 +5,7 @@ import "ds-test/test.sol";
 import "openzeppelin-contracts/token/ERC20/ERC20.sol";
 
 import {iOVM_FakeCrossDomainMessenger} from "./iOVM_FakeCrossDomainMessenger.sol";
-import {Hevm} from "./lib/Hevm.sol";
+import {Vm} from "./lib/Vm.sol";
 
 import {RollCallBridge} from "../RollCallBridge.sol";
 import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
@@ -52,7 +52,7 @@ contract RollCallProposer {
 }
 
 contract RollCallVoterSetup is DSTest {
-    Hevm internal hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+    Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     GovernanceERC20 internal token;
     iOVM_FakeCrossDomainMessenger internal cdm;
     RollCallBridge internal bridge;
@@ -91,7 +91,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
 
     function testFailCantProposeWhenAfterEnd() public {
         uint64 ts = uint64(block.timestamp);
-        hevm.warp(block.timestamp + 101);
+        vm.warp(block.timestamp + 101);
         proposer.propose(
             1,
             IRollCallGovernor.Proposal({
