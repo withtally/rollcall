@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 /*
 Forked from: https://github.com/aragon/evm-storage-proofs/blob/master/packages/evm/contracts/lib/RLP.sol

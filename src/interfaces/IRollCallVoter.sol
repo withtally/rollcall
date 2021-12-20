@@ -23,13 +23,7 @@ abstract contract IRollCallVoter is IERC165 {
      *
      * Note: `support` values should be seen as buckets. There interpretation depends on the voting module used.
      */
-    event VoteCast(
-        address indexed voter,
-        uint256 id,
-        uint8 support,
-        uint256 weight,
-        string reason
-    );
+    event VoteCast(address indexed voter, uint256 id, uint8 support, uint256 weight, string reason);
 
     /**
      * @notice module:core
@@ -57,34 +51,13 @@ abstract contract IRollCallVoter is IERC165 {
      * @notice module:core
      * @dev Current state of a proposal vote
      */
-    function state(address token, uint256 id)
-        public
-        view
-        virtual
-        returns (ProposalState);
-
-    /**
-     * @notice module:reputation
-     * @dev Voting power of an `account` at a specific `blockNumber`.
-     *
-     * Note: this can be implemented in a number of ways, for example by reading the delegated balance from one (or
-     * multiple), {ERC20Votes} tokens.
-     */
-    function getVotes(address account, uint256 blockNumber)
-        public
-        view
-        virtual
-        returns (uint256);
+    function state(address token, uint256 id) public view virtual returns (ProposalState);
 
     /**
      * @notice module:voting
      * @dev Returns weither `account` has cast a vote on `id`.
      */
-    function hasVoted(uint256 id, address account)
-        public
-        view
-        virtual
-        returns (bool);
+    function hasVoted(uint256 id, address account) public view virtual returns (bool);
 
     /**
      * @dev Cast a vote

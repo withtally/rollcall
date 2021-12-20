@@ -1,3 +1,0 @@
-openzeppelin-contracts/=/Users/tarrence/code/rollcall/contracts/lib/openzeppelin-contracts/contracts/
-ds-test/=/Users/tarrence/code/rollcall/contracts/lib/ds-test/src/
-demo/=/Users/tarrence/code/rollcall/contracts/lib/ds-test/demo/contracts/

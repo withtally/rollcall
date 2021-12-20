@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
+
+import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 
-contract RollCallBridge {
+contract RollCallBridge is Ownable {
     iOVM_CrossDomainMessenger private immutable _ovm;
-    address private immutable _voter;
+    address public voter;
 
-    constructor(iOVM_CrossDomainMessenger ovm_, address voter_) {
+    constructor(iOVM_CrossDomainMessenger ovm_) {
         _ovm = ovm_;
-        _voter = voter_;
+    }
+
+    function setVoter(address voter_) external onlyOwner {
+        voter = voter_;
     }
 
     function propose(uint256 id) external {
@@ -20,6 +25,11 @@ contract RollCallBridge {
         uint256 slot = governor.slot();
 
         IRollCallGovernor.Proposal memory proposal = governor.proposal(id);
+
+        require(
+            proposal.end > block.timestamp,
+            "bridge: proposal end before now"
+        );
 
         bytes memory message = abi.encodeWithSelector(
             IRollCallVoter.propose.selector,
@@ -32,6 +42,6 @@ contract RollCallBridge {
             proposal.end
         );
 
-        _ovm.sendMessage(address(_voter), message, 1900000); // 1900000 gas is given for free
+        _ovm.sendMessage(voter, message, 1900000); // 1900000 gas is given for free
     }
 }

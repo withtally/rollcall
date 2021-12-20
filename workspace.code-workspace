@@ -1,13 +1,14 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-        "solidity.remappings": [
-            "openzeppelin-contracts/=/Users/tarrence/code/rollcall/contracts/lib/openzeppelin-contracts/contracts/",
-            "ds-test/=/Users/tarrence/code/rollcall/contracts/lib/ds-test/src/"
-        ]
+  "folders": [
+    {
+      "path": "."
     }
+  ],
+  "settings": {
+    "solidity.remappings": [
+      "openzeppelin-contracts/=./lib/openzeppelin-contracts/contracts/",
+      "ds-test/=./lib/ds-test/src/",
+      "demo/=./lib/ds-test/demo/contracts/"
+    ]
+  }
 }

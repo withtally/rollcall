@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import {ECDSA} from "openzeppelin-contracts/utils/cryptography/ECDSA.sol";
 import {MerkleProof} from "openzeppelin-contracts/utils/cryptography/MerkleProof.sol";
@@ -24,11 +24,10 @@ import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
  * - Additionanly, the {votingPeriod} must also be implemented
  *
  */
-abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
+contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     using SafeCast for uint256;
 
-    bytes32 public constant BALLOT_TYPEHASH =
-        keccak256("Ballot(uint256 id,uint8 support)");
+    bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 id,uint8 support)");
 
     struct Proposal {
         address token;
@@ -40,7 +39,7 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     }
 
     string private _name;
-    iOVM_CrossDomainMessenger private _cdm;
+    iOVM_CrossDomainMessenger private immutable _cdm;
     address private _bridge;
 
     mapping(address => mapping(uint256 => Proposal)) private _proposals;
@@ -48,24 +47,21 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     /**
      * @dev Sets the value for {name} and {version}
      */
-    constructor(string memory name_, address l1_) EIP712(name_, version()) {
+    constructor(
+        string memory name_,
+        address cdm_,
+        address bridge_
+    ) EIP712(name_, version()) {
         _name = name_;
-        _bridge = l1_;
+        _cdm = iOVM_CrossDomainMessenger(cdm_);
+        _bridge = bridge_;
     }
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(IERC165, ERC165)
-        returns (bool)
-    {
-        return
-            interfaceId == type(IRollCallVoter).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC165) returns (bool) {
+        return interfaceId == type(IRollCallVoter).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -85,13 +81,7 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     /**
      * @dev See {IRollCallGovernor-state}.
      */
-    function state(address governor, uint256 id)
-        public
-        view
-        virtual
-        override
-        returns (ProposalState)
-    {
+    function state(address governor, uint256 id) public view virtual override returns (ProposalState) {
         Proposal storage proposal = _proposals[governor][id];
 
         require(proposal.start != 0, "RollCall: proposal vote doesnt exist");
@@ -119,7 +109,7 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         bytes32 root,
         uint64 start,
         uint64 end
-    ) external override onlyL1 {
+    ) external override onlyBridge {
         Proposal storage proposal = _proposals[governor][id];
         proposal.token = token;
         proposal.slot = slot;
@@ -145,6 +135,14 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         );
 
         _cdm.sendMessage(_bridge, message, 1000000);
+    }
+
+    /**
+     * @notice module:voting
+     * @dev Returns weither `account` has cast a vote on `id`.
+     */
+    function hasVoted(uint256 id, address account) public view override returns (bool) {
+        return false;
     }
 
     /**
@@ -189,20 +187,13 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         bytes32 r,
         bytes32 s
     ) public virtual override returns (uint256) {
-        address voter = ECDSA.recover(
-            _hashTypedDataV4(
-                keccak256(abi.encode(BALLOT_TYPEHASH, id, support))
-            ),
-            v,
-            r,
-            s
-        );
+        address voter = ECDSA.recover(_hashTypedDataV4(keccak256(abi.encode(BALLOT_TYPEHASH, id, support))), v, r, s);
         return _castVote(id, governor, voter, balance, proof, support, "");
     }
 
     /**
-     * @dev Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
-     * voting weight using {IRollCallVoter-getVotes} and call the {_countVote} internal function.
+     * @dev Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet,
+     * and call the {_countVote} internal function.
      *
      * Emits a {IRollCallVoter-VoteCast} event.
      */
@@ -216,15 +207,9 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         string memory reason
     ) internal virtual returns (uint256) {
         Proposal storage proposal = _proposals[governor][id];
-        require(
-            state(governor, id) == ProposalState.Active,
-            "RollCall: vote not currently active"
-        );
+        require(state(governor, id) == ProposalState.Active, "RollCall: vote not currently active");
 
-        require(
-            MerkleProof.verify(proof, proposal.root, bytes32(balance)),
-            "RollCall: invalid balance"
-        );
+        require(MerkleProof.verify(proof, proposal.root, bytes32(balance)), "RollCall: invalid balance");
 
         emit VoteCast(account, id, support, balance, reason);
 
@@ -232,13 +217,10 @@ abstract contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev Throws if called by any account other than the l1 l1.
+     * @dev Throws if called by any account other than the l1 bridge.
      */
-    modifier onlyL1() {
-        require(
-            msg.sender == address(_cdm) &&
-                _cdm.xDomainMessageSender() == _bridge
-        );
+    modifier onlyBridge() {
+        require(msg.sender == address(_cdm) && _cdm.xDomainMessageSender() == _bridge);
         _;
     }
 }

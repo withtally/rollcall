@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import "ds-test/test.sol";
 import "openzeppelin-contracts/token/ERC20/ERC20.sol";
 
-import {MockStateRoot} from "./lib/StateRoot.sol";
 import {RollCallBridge} from "../RollCallBridge.sol";
 import {RollCallGovernor} from "../RollCallGovernor.sol";
-import {RollCallGovernorBasic} from "./RollCallGovernorBasic.sol";
+import {RollCallGovernorBasic} from "../extensions/RollCallGovernorBasic.sol";
 
 contract GovernanceERC20 is ERC20 {
     constructor() ERC20("Rollcall", "ROLLCALL") {}
@@ -35,3 +34,4 @@ contract RollCallGovernorTest is DSTest {
         assertTrue(true);
     }
 }
+
