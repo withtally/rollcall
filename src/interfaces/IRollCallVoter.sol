@@ -23,7 +23,13 @@ abstract contract IRollCallVoter is IERC165 {
      *
      * Note: `support` values should be seen as buckets. There interpretation depends on the voting module used.
      */
-    event VoteCast(address indexed voter, uint256 id, uint8 support, uint256 weight, string reason);
+    event VoteCast(
+        address indexed voter,
+        uint256 id,
+        uint8 support,
+        uint256 weight,
+        string reason
+    );
 
     /**
      * @notice module:core
@@ -51,13 +57,21 @@ abstract contract IRollCallVoter is IERC165 {
      * @notice module:core
      * @dev Current state of a proposal vote
      */
-    function state(address token, uint256 id) public view virtual returns (ProposalState);
+    function state(address token, uint256 id)
+        public
+        view
+        virtual
+        returns (ProposalState);
 
     /**
      * @notice module:voting
      * @dev Returns weither `account` has cast a vote on `id`.
      */
-    function hasVoted(uint256 id, address account) public view virtual returns (bool);
+    function hasVoted(uint256 id, address account)
+        public
+        view
+        virtual
+        returns (bool);
 
     /**
      * @dev Cast a vote
@@ -68,7 +82,7 @@ abstract contract IRollCallVoter is IERC165 {
         uint256 id,
         address governor,
         uint256 balance,
-        bytes32[] memory proof,
+        bytes memory proofRlp,
         uint8 support
     ) public virtual returns (uint256);
 
@@ -81,7 +95,7 @@ abstract contract IRollCallVoter is IERC165 {
         uint256 id,
         address governor,
         uint256 balance,
-        bytes32[] memory proof,
+        bytes memory proofRlp,
         uint8 support,
         string calldata reason
     ) public virtual returns (uint256);
@@ -95,7 +109,7 @@ abstract contract IRollCallVoter is IERC165 {
         uint256 id,
         address governor,
         uint256 balance,
-        bytes32[] memory proof,
+        bytes memory proofRlp,
         uint8 support,
         uint8 v,
         bytes32 r,

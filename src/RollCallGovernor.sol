@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (governance/Governor.sol)
 
-pragma solidity ^0.8.10;
+pragma solidity 0.6.12;
 
 import {SafeCast} from "openzeppelin-contracts/utils/math/SafeCast.sol";
 import {Context} from "openzeppelin-contracts/utils/Context.sol";

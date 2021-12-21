@@ -2,12 +2,16 @@
   "folders": [
     {
       "path": "."
+    },
+    {
+      "path": "../storage-proofs-eth-go"
     }
   ],
   "settings": {
     "solidity.remappings": [
       "openzeppelin-contracts/=./lib/openzeppelin-contracts/contracts/",
-      "ds-test/=./lib/ds-test/src/"
+      "ds-test/=./lib/ds-test/src/",
+      "curve-merkle-oracle/=./lib/curve-merkle-oracle/contracts/"
     ]
   }
 }
