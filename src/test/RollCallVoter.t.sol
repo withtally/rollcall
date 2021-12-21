@@ -9,6 +9,7 @@ import {Vm} from "./lib/Vm.sol";
 
 import {RollCallBridge} from "../RollCallBridge.sol";
 import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
+import {IRollCallVoter} from "../interfaces/IRollCallVoter.sol";
 import {RollCallVoter} from "../RollCallVoter.sol";
 
 contract GovernanceERC20 is ERC20 {
@@ -67,6 +68,8 @@ contract RollCallVoterSetup is DSTest {
         voter = new RollCallVoter("rollcall", address(cdm), address(bridge));
 
         proposer = new RollCallProposer(address(bridge));
+
+        bridge.setVoter(address(voter));
     }
 }
 
@@ -89,9 +92,10 @@ contract RollCallVoterProposing is RollCallVoterSetup {
         );
     }
 
-    function testFailCantProposeWhenAfterEnd() public {
+    function testCantProposeWhenAfterEnd() public {
         uint64 ts = uint64(block.timestamp);
         vm.warp(block.timestamp + 101);
+        vm.expectRevert("bridge: proposal end before now");
         proposer.propose(
             1,
             IRollCallGovernor.Proposal({
@@ -102,5 +106,50 @@ contract RollCallVoterProposing is RollCallVoterSetup {
                 canceled: false
             })
         );
+    }
+}
+
+contract RollCallVoterVoting is RollCallVoterSetup {
+    uint64 internal ts = uint64(block.timestamp);
+    uint64 internal start = ts + 10;
+    uint64 internal end = ts + 100;
+
+    function setUp() public override {
+        super.setUp();
+
+        proposer.propose(
+            1,
+            IRollCallGovernor.Proposal({
+                root: hex"aa4b6e9974527b5c8a26e9892701df673ad9fb7ac3d0f4641673bd67923f4730",
+                start: start,
+                end: end,
+                executed: false,
+                canceled: false
+            })
+        );
+    }
+
+    function testResturnsCorrectProposalState() public {
+        assertEq(
+            uint256(voter.state(address(proposer), 1)),
+            uint256(IRollCallVoter.ProposalState.Pending),
+            "proposal not pending"
+        );
+
+        vm.warp(start);
+        assertEq(
+            uint256(voter.state(address(proposer), 1)),
+            uint256(IRollCallVoter.ProposalState.Active),
+            "proposal not active"
+        );
+
+        vm.warp(end);
+        assertEq(
+            uint256(voter.state(address(proposer), 1)),
+            uint256(IRollCallVoter.ProposalState.Ended)
+        );
+
+        vm.expectRevert("rollcall: proposal vote doesnt exist");
+        voter.state(address(proposer), 2);
     }
 }

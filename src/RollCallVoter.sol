@@ -35,7 +35,6 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         uint256 slot;
         uint64 start;
         uint64 end;
-        bool canceled;
     }
 
     string private _name;
@@ -84,17 +83,13 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     function state(address governor, uint256 id) public view virtual override returns (ProposalState) {
         Proposal storage proposal = _proposals[governor][id];
 
-        require(proposal.start != 0, "RollCall: proposal vote doesnt exist");
+        require(proposal.start != 0, "rollcall: proposal vote doesnt exist");
 
-        if (proposal.canceled) {
-            return ProposalState.Canceled;
-        }
-
-        if (proposal.start > block.number) {
+        if (proposal.start > block.timestamp) {
             return ProposalState.Pending;
         }
 
-        if (proposal.start <= block.number && proposal.end > block.number) {
+        if (proposal.start <= block.timestamp && proposal.end > block.timestamp) {
             return ProposalState.Active;
         }
 
@@ -207,9 +202,9 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         string memory reason
     ) internal virtual returns (uint256) {
         Proposal storage proposal = _proposals[governor][id];
-        require(state(governor, id) == ProposalState.Active, "RollCall: vote not currently active");
+        require(state(governor, id) == ProposalState.Active, "rollcall: vote not currently active");
 
-        require(MerkleProof.verify(proof, proposal.root, bytes32(balance)), "RollCall: invalid balance");
+        require(MerkleProof.verify(proof, proposal.root, bytes32(balance)), "rollcall: invalid balance");
 
         emit VoteCast(account, id, support, balance, reason);
 
