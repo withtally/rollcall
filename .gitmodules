@@ -8,3 +8,6 @@
 [submodule "lib/curve-merkle-oracle"]
 	path = lib/curve-merkle-oracle
 	url = https://github.com/lidofinance/curve-merkle-oracle
+[submodule "lib/Solidity-RLP"]
+	path = lib/Solidity-RLP
+	url = https://github.com/hamdiallam/Solidity-RLP
