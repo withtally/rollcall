@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (governance/IGovernor.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "openzeppelin-contracts/utils/introspection/ERC165.sol";
+import "openzeppelin-contracts/introspection/ERC165.sol";
 
 /**
  * @dev Interface of the {Governor} core.
@@ -81,7 +82,7 @@ abstract contract IRollCallGovernor is IERC165 {
     /**
      * @notice module:core
      */
-    function slot() external view virtual returns (uint256);
+    function slot() external view virtual returns (bytes32);
 
     /**
      * @notice module:voting

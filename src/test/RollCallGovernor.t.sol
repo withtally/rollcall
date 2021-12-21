@@ -9,7 +9,7 @@ import {RollCallGovernor} from "../RollCallGovernor.sol";
 import {RollCallGovernorBasic} from "../extensions/RollCallGovernorBasic.sol";
 
 contract GovernanceERC20 is ERC20 {
-    constructor() ERC20("Rollcall", "ROLLCALL") {}
+    constructor() ERC20("Rollcall", "ROLLCALL") public {}
 
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
@@ -25,7 +25,7 @@ contract RollCallGovernorTest is DSTest {
         governor = new RollCallGovernorBasic(
             "rollcall",
             address(token),
-            1,
+            bytes32('1'),
             address(bridge)
         );
     }

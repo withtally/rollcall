@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "../extensions/RollCallGovernorCountingSimple.sol";
 
@@ -7,9 +8,9 @@ contract RollCallGovernorBasic is RollCallGovernorCountingSimple {
     constructor(
         string memory name_,
         address token_,
-        uint256 slot_,
+        bytes32 slot_,
         address bridge_
-    ) RollCallGovernor(name_, token_, slot_, bridge_) {}
+    ) RollCallGovernor(name_, token_, slot_, bridge_) public {}
 
     /**
      * @notice module:user-config

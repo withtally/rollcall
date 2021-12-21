@@ -1,7 +1,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts@fa64a1ced0b70ab89073d5d0b6e01b0778f7e7d6
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test

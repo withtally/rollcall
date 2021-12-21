@@ -2,16 +2,15 @@
   "folders": [
     {
       "path": "."
-    },
-    {
-      "path": "../storage-proofs-eth-go"
     }
   ],
   "settings": {
     "solidity.remappings": [
       "openzeppelin-contracts/=./lib/openzeppelin-contracts/contracts/",
       "ds-test/=./lib/ds-test/src/",
-      "curve-merkle-oracle/=./lib/curve-merkle-oracle/contracts/"
-    ]
+      "Solidity-RLP/=./lib/Solidity-RLP/contracts/"
+    ],
+    "solidity.compileUsingLocalVersion": "/Users/tarrence/code/rollcall/soljson-v0.6.12+commit.27d51765.js",
+    "solidity.compileUsingRemoteVersion": "v0.6.12+commit.27d51765"
   }
 }

@@ -2,17 +2,19 @@
 // OpenZeppelin Contracts v4.4.0 (governance/Governor.sol)
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import {SafeCast} from "openzeppelin-contracts/utils/math/SafeCast.sol";
+import {SafeMath} from "openzeppelin-contracts/math/SafeMath.sol";
 import {Context} from "openzeppelin-contracts/utils/Context.sol";
-import {EIP712} from "openzeppelin-contracts/utils/cryptography/draft-EIP712.sol";
-import {ERC165} from "openzeppelin-contracts/utils/introspection/ERC165.sol";
-import {IERC165} from "openzeppelin-contracts/utils/introspection/IERC165.sol";
+import {EIP712} from "openzeppelin-contracts/drafts/EIP712.sol";
+import {ERC165} from "openzeppelin-contracts/introspection/ERC165.sol";
+import {IERC165} from "openzeppelin-contracts/introspection/IERC165.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 
-import {StateRoot} from "./lib/StateRoot.sol";
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
+
+import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
 
 interface Token {
     /**
@@ -31,13 +33,13 @@ interface Token {
  *
  */
 abstract contract RollCallGovernor is Context, ERC165, EIP712, IRollCallGovernor {
-    using SafeCast for uint256;
+    using SafeMath for uint256;
 
     bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
     string private _name;
     address public override token;
-    uint256 public override slot;
+    bytes32 public override slot;
     IRollCallBridge private _bridge;
 
     mapping(uint256 => Proposal) private _proposals;
@@ -57,9 +59,9 @@ abstract contract RollCallGovernor is Context, ERC165, EIP712, IRollCallGovernor
     constructor(
         string memory name_,
         address token_,
-        uint256 slot_,
+        bytes32 slot_,
         address bridge_
-    ) EIP712(name_, version()) {
+    ) EIP712(name_, version()) public {
         _name = name_;
         token = token_;
         slot = slot_;
@@ -228,10 +230,14 @@ abstract contract RollCallGovernor is Context, ERC165, EIP712, IRollCallGovernor
         Proposal storage proposal_ = _proposals[proposalId];
         require(proposal_.start == 0, "Governor: proposal already exists");
 
-        uint64 start = block.number.toUint64();
-        uint64 deadline = start + votingPeriod().toUint64();
+        uint64 start = uint64(block.number);
 
-        proposal_.root = StateRoot.get(blockHeaderRLP, blockhash(snapshot));
+        // TODO: Make sure safe cast
+        uint64 deadline = start + uint64(votingPeriod());
+
+        Verifier.BlockHeader memory blockHeader = Verifier.verifyBlockHeader(blockHeaderRLP);
+
+        proposal_.root = blockHeader.stateRootHash;
         proposal_.start = start;
         proposal_.end = deadline;
 
@@ -289,11 +295,11 @@ abstract contract RollCallGovernor is Context, ERC165, EIP712, IRollCallGovernor
         bytes[] memory calldatas,
         bytes32 /*descriptionHash*/
     ) internal virtual {
-        string memory errorMessage = "Governor: call reverted without message";
-        for (uint256 i = 0; i < targets.length; ++i) {
-            (bool success, bytes memory returndata) = targets[i].call{value: values[i]}(calldatas[i]);
-            Address.verifyCallResult(success, returndata, errorMessage);
-        }
+        // string memory errorMessage = "Governor: call reverted without message";
+        // for (uint256 i = 0; i < targets.length; ++i) {
+        //     (bool success, bytes memory returndata) = targets[i].call{value: values[i]}(calldatas[i]);
+        //     // Address.verifyCallResult(success, returndata, errorMessage);
+        // }
     }
 
     /**

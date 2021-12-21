@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
 import "openzeppelin-contracts/token/ERC20/ERC20.sol";
@@ -13,7 +14,7 @@ import {IRollCallVoter} from "../interfaces/IRollCallVoter.sol";
 import {RollCallVoter} from "../RollCallVoter.sol";
 
 contract GovernanceERC20 is ERC20 {
-    constructor() ERC20("Rollcall", "ROLLCALL") {}
+    constructor() ERC20("Rollcall", "ROLLCALL") public {}
 
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
@@ -25,7 +26,7 @@ contract RollCallProposer {
 
     mapping(uint256 => IRollCallGovernor.Proposal) internal proposals;
 
-    constructor(address bridge_) {
+    constructor(address bridge_) public {
         bridge = RollCallBridge(bridge_);
     }
 
@@ -80,7 +81,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
 
     function testCanPropose() public {
         uint64 ts = uint64(block.timestamp);
-        proposer.propose(
+        governor.propose(
             1,
             IRollCallGovernor.Proposal({
                 root: hex"aa4b6e9974527b5c8a26e9892701df673ad9fb7ac3d0f4641673bd67923f4730",
@@ -96,7 +97,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
         uint64 ts = uint64(block.timestamp);
         vm.warp(block.timestamp + 101);
         vm.expectRevert("bridge: proposal end before now");
-        proposer.propose(
+        governor.propose(
             1,
             IRollCallGovernor.Proposal({
                 root: hex"aa4b6e9974527b5c8a26e9892701df673ad9fb7ac3d0f4641673bd67923f4730",

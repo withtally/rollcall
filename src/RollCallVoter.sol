@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import {ECDSA} from "openzeppelin-contracts/utils/cryptography/ECDSA.sol";
+import {ECDSA} from "openzeppelin-contracts/cryptography/ECDSA.sol";
 import {Context} from "openzeppelin-contracts/utils/Context.sol";
-import {EIP712} from "openzeppelin-contracts/utils/cryptography/draft-EIP712.sol";
-import {ERC165} from "openzeppelin-contracts/utils/introspection/ERC165.sol";
-import {IERC165} from "openzeppelin-contracts/utils/introspection/IERC165.sol";
+import {EIP712} from "openzeppelin-contracts/drafts/EIP712.sol";
+import {ERC165} from "openzeppelin-contracts/introspection/ERC165.sol";
+import {IERC165} from "openzeppelin-contracts/introspection/IERC165.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
-
-import {StateProofVerifier as Verifier} from "curve-merkle-oracle/StateProofVerifier.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
+
+import {RLPReader} from "./lib/RLPReader.sol";
+import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
@@ -52,7 +54,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         string memory name_,
         address cdm_,
         address bridge_
-    ) EIP712(name_, version()) {
+    ) EIP712(name_, version()) public {
         _name = name_;
         _cdm = iOVM_CrossDomainMessenger(cdm_);
         _bridge = bridge_;
@@ -117,7 +119,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     function propose(
         address governor,
         address token,
-        uint256 slot,
+        bytes32 slot,
         uint256 id,
         bytes32 root,
         uint64 start,
@@ -173,7 +175,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         uint8 support
     ) public virtual override returns (uint256) {
         address voter = _msgSender();
-        return _castVote(id, governor, voter, proof, support, "");
+        return _castVote(id, governor, voter, proofRlp, support, "");
     }
 
     /**
@@ -187,7 +189,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         string calldata reason
     ) public virtual override returns (uint256) {
         address voter = _msgSender();
-        return _castVote(id, governor, voter, proof, support, reason);
+        return _castVote(id, governor, voter, proofRlp, support, reason);
     }
 
     /**
@@ -210,7 +212,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
             r,
             s
         );
-        return _castVote(id, governor, voter, proof, support, "");
+        return _castVote(id, governor, voter, proofRlp, support, "");
     }
 
     /**

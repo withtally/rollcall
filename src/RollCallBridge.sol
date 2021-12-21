@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
@@ -11,7 +12,7 @@ contract RollCallBridge is Ownable {
     iOVM_CrossDomainMessenger private immutable _ovm;
     address public voter;
 
-    constructor(iOVM_CrossDomainMessenger ovm_) {
+    constructor(iOVM_CrossDomainMessenger ovm_) public {
         _ovm = ovm_;
     }
 
@@ -22,7 +23,7 @@ contract RollCallBridge is Ownable {
     function propose(uint256 id) external {
         IRollCallGovernor governor = IRollCallGovernor(msg.sender);
         address token = governor.token();
-        uint256 slot = governor.slot();
+        bytes32 slot = governor.slot();
 
         IRollCallGovernor.Proposal memory proposal = governor.proposal(id);
 

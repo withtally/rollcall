@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (governance/IRollCallVoter.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "openzeppelin-contracts/utils/introspection/ERC165.sol";
+import "openzeppelin-contracts/introspection/ERC165.sol";
 
 /**
  * @dev Interface of the {RollCallVoter} core.
@@ -46,7 +47,7 @@ abstract contract IRollCallVoter is IERC165 {
     function propose(
         address governor,
         address token,
-        uint256 slot,
+        bytes32 slot,
         uint256 id,
         bytes32 root,
         uint64 start,
@@ -81,7 +82,6 @@ abstract contract IRollCallVoter is IERC165 {
     function castVote(
         uint256 id,
         address governor,
-        uint256 balance,
         bytes memory proofRlp,
         uint8 support
     ) public virtual returns (uint256);
@@ -94,7 +94,6 @@ abstract contract IRollCallVoter is IERC165 {
     function castVoteWithReason(
         uint256 id,
         address governor,
-        uint256 balance,
         bytes memory proofRlp,
         uint8 support,
         string calldata reason
@@ -108,7 +107,6 @@ abstract contract IRollCallVoter is IERC165 {
     function castVoteBySig(
         uint256 id,
         address governor,
-        uint256 balance,
         bytes memory proofRlp,
         uint8 support,
         uint8 v,
