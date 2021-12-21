@@ -45,7 +45,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     iOVM_CrossDomainMessenger private immutable _cdm;
     address private _bridge;
 
-    mapping(address => mapping(uint256 => Proposal)) private _proposals;
+    mapping(address => mapping(uint256 => Proposal)) public proposals;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -54,7 +54,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         string memory name_,
         address cdm_,
         address bridge_
-    ) EIP712(name_, version()) public {
+    ) public EIP712(name_, version()) {
         _name = name_;
         _cdm = iOVM_CrossDomainMessenger(cdm_);
         _bridge = bridge_;
@@ -99,7 +99,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         override
         returns (ProposalState)
     {
-        Proposal storage proposal = _proposals[governor][id];
+        Proposal storage proposal = proposals[governor][id];
 
         require(proposal.start != 0, "rollcall: proposal vote doesnt exist");
 
@@ -125,7 +125,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         uint64 start,
         uint64 end
     ) external override onlyBridge {
-        Proposal storage proposal = _proposals[governor][id];
+        Proposal storage proposal = proposals[governor][id];
         proposal.token = token;
         proposal.slot = slot;
         proposal.root = root;
@@ -134,7 +134,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     }
 
     function finalize(address governor, uint256 id) external {
-        Proposal memory proposal = _proposals[governor][id];
+        Proposal memory proposal = proposals[governor][id];
         // TODO: Use L1 block number
         require(proposal.end < block.number, "voter: voting in progress");
 
@@ -174,8 +174,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         bytes memory proofRlp,
         uint8 support
     ) public virtual override returns (uint256) {
-        address voter = _msgSender();
-        return _castVote(id, governor, voter, proofRlp, support, "");
+        return _castVote(id, governor, msg.sender, proofRlp, support, "");
     }
 
     /**
@@ -188,8 +187,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         uint8 support,
         string calldata reason
     ) public virtual override returns (uint256) {
-        address voter = _msgSender();
-        return _castVote(id, governor, voter, proofRlp, support, reason);
+        return _castVote(id, governor, msg.sender, proofRlp, support, reason);
     }
 
     /**
@@ -229,7 +227,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         uint8 support,
         string memory reason
     ) internal virtual returns (uint256) {
-        Proposal storage proposal = _proposals[governor][id];
+        Proposal storage proposal = proposals[governor][id];
         require(
             state(governor, id) == ProposalState.Active,
             "rollcall: vote not currently active"
@@ -238,7 +236,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
 
         Verifier.SlotValue memory balance = Verifier.extractSlotValueFromProof(
-            proposal.slot,
+            keccak256(abi.encodePacked(proposal.slot)),
             proposal.root,
             proofs
         );

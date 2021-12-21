@@ -5,12 +5,29 @@ import (
 	"log"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/vocdoni/storage-proofs-eth-go/ethstorageproof"
 )
+
+type StorageProof struct {
+	Height       *big.Int        `json:"height"`
+	Address      common.Address  `json:"address"`
+	Balance      *hexutil.Big    `json:"balance"`
+	CodeHash     common.Hash     `json:"codeHash"`
+	Nonce        hexutil.Uint64  `json:"nonce"`
+	StateRoot    common.Hash     `json:"stateRoot"`
+	StorageHash  common.Hash     `json:"storageHash"`
+	StorageProof []StorageResult `json:"storageProof"`
+}
+
+type StorageResult struct {
+	Key   string   `json:"key"`
+	Value string   `json:"value"`
+	Proof []string `json:"proof"`
+}
 
 func main() {
 	ctx := context.Background()
@@ -31,7 +48,7 @@ func main() {
 		log.Fatalf("getting block: %+v", err)
 	}
 
-	var resp ethstorageproof.StorageProof
+	var resp StorageProof
 	if err := ethRPC.Call(
 		&resp,
 		"eth_getProof",
@@ -45,9 +62,22 @@ func main() {
 	resp.StateRoot = block.Root()
 	resp.Height = block.Header().Number
 
-	encoded, err := rlp.EncodeToBytes(resp.StorageProof)
+	var target [][][]byte
+	for _, p := range resp.StorageProof[0].Proof {
+		bz, err := hexutil.Decode(p)
+		if err != nil {
+			log.Fatalf("decoding node hex: %+v", err)
+		}
+		var val [][]byte
+		if err := rlp.DecodeBytes(bz, &val); err != nil {
+			log.Fatalf("decoding node rlp: %+v", err)
+		}
+		target = append(target, val)
+	}
+
+	encoded, err := rlp.EncodeToBytes(target)
 	if err != nil {
-		log.Fatalf("rlp encoding storage proof: %+v", err)
+		log.Fatalf("encoding rlp: %+v", err)
 	}
 
 	hex := hexutil.Encode(encoded)
