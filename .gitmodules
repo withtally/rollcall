@@ -5,3 +5,6 @@
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
+[submodule "lib/curve-merkle-oracle"]
+	path = lib/curve-merkle-oracle
+	url = https://github.com/lidofinance/curve-merkle-oracle
