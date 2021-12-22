@@ -2,6 +2,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import {SafeMath} from "openzeppelin-contracts/math/SafeMath.sol";
 import {ECDSA} from "openzeppelin-contracts/cryptography/ECDSA.sol";
 import {Context} from "openzeppelin-contracts/utils/Context.sol";
 import {EIP712} from "openzeppelin-contracts/drafts/EIP712.sol";
@@ -13,6 +14,8 @@ import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 
+import {iOVM_L1BlockNumber} from "./interfaces/iOVM_L1BlockNumber.sol";
+import {Lib_PredeployAddresses} from "./lib/Lib_PredeployAddresses.sol";
 import {RLPReader} from "./lib/RLPReader.sol";
 import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
 
@@ -27,6 +30,7 @@ import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
  *
  */
 contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
+    using SafeMath for uint256;
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
 
@@ -39,6 +43,8 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         bytes32 slot;
         uint64 start;
         uint64 end;
+        bool finalized;
+        mapping(address => bool) voted;
     }
 
     string private _name;
@@ -46,6 +52,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     address private _bridge;
 
     mapping(address => mapping(uint256 => Proposal)) public proposals;
+    mapping(address => mapping(uint256 => uint256[10])) public votes;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -103,13 +110,11 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
 
         require(proposal.start != 0, "rollcall: proposal vote doesnt exist");
 
-        if (proposal.start > block.timestamp) {
+        if (proposal.start > blocknumber()) {
             return ProposalState.Pending;
         }
 
-        if (
-            proposal.start <= block.timestamp && proposal.end > block.timestamp
-        ) {
+        if (proposal.start <= blocknumber() && proposal.end > blocknumber()) {
             return ProposalState.Active;
         }
 
@@ -133,10 +138,13 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         proposal.end = end;
     }
 
-    function finalize(address governor, uint256 id) external {
+    function tally(address governor, uint256 id) external {
         Proposal memory proposal = proposals[governor][id];
         // TODO: Use L1 block number
         require(proposal.end < block.number, "voter: voting in progress");
+        require(!proposal.finalized, "voter: already finalized");
+
+        proposal.finalized = true;
 
         bytes memory message = abi.encodeWithSelector(
             IRollCallGovernor.finalize.selector,
@@ -156,13 +164,12 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
      * @notice module:voting
      * @dev Returns weither `account` has cast a vote on `id`.
      */
-    function hasVoted(uint256 id, address account)
-        public
-        view
-        override
-        returns (bool)
-    {
-        return false;
+    function hasVoted(
+        address governor,
+        uint256 id,
+        address account
+    ) public view override returns (bool) {
+        return proposals[governor][id].voted[account];
     }
 
     /**
@@ -232,6 +239,10 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
             state(governor, id) == ProposalState.Active,
             "rollcall: vote not currently active"
         );
+        require(
+            !proposals[governor][id].voted[account],
+            "rollcall: already voted"
+        );
 
         RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
 
@@ -243,13 +254,16 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
 
         require(balance.exists, "voter: balance doesnt exist");
 
+        proposals[governor][id].voted[account] = true;
+        votes[governor][id][support].add(balance.value);
+
         emit VoteCast(account, id, support, balance.value, reason);
 
         return balance.value;
     }
 
     /**
-     * @dev Throws if called by any account other than the l1 bridge.
+     * @dev Throws if called by any account other than the L1 bridge contract.
      */
     modifier onlyBridge() {
         require(
@@ -257,5 +271,12 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
                 _cdm.xDomainMessageSender() == _bridge
         );
         _;
+    }
+
+    function blocknumber() private view returns (uint256) {
+        return
+            iOVM_L1BlockNumber(
+                Lib_PredeployAddresses.L1_BLOCK_NUMBER // located at 0x4200000000000000000000000000000000000013
+            ).getL1BlockNumber();
     }
 }

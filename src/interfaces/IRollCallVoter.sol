@@ -66,13 +66,13 @@ abstract contract IRollCallVoter is IERC165 {
 
     /**
      * @notice module:voting
-     * @dev Returns weither `account` has cast a vote on `id`.
+     * @dev Returns weither `account` has cast a vote on `id` for a partciular governor.
      */
-    function hasVoted(uint256 id, address account)
-        public
-        view
-        virtual
-        returns (bool);
+    function hasVoted(
+        address governor,
+        uint256 id,
+        address account
+    ) public view virtual returns (bool);
 
     /**
      * @dev Cast a vote

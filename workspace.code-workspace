@@ -8,9 +8,9 @@
     "solidity.remappings": [
       "openzeppelin-contracts/=./lib/openzeppelin-contracts/contracts/",
       "ds-test/=./lib/ds-test/src/",
-      "Solidity-RLP/=./lib/Solidity-RLP/contracts/"
+      "Solidity-RLP/=./lib/Solidity-RLP/contracts/",
+      "optimism/=./lib/optimism/"
     ],
-    "solidity.compileUsingLocalVersion": "/Users/tarrence/code/rollcall/soljson-v0.6.12+commit.27d51765.js",
     "solidity.compileUsingRemoteVersion": "v0.6.12+commit.27d51765"
   }
 }

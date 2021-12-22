@@ -13,6 +13,7 @@ import "openzeppelin-contracts/introspection/ERC165.sol";
  */
 abstract contract IRollCallGovernor is IERC165 {
     struct Proposal {
+        uint256 snapshot;
         bytes32 root;
         uint64 start;
         uint64 end;
@@ -126,15 +127,13 @@ abstract contract IRollCallGovernor is IERC165 {
 
     /**
      * @notice module:core
-     * @dev Block number used to retrieve user's votes and quorum. As per Compound's Comp and OpenZeppelin's
-     * ERC20Votes, the snapshot is performed at the end of this block. Hence, voting for this proposal starts at the
-     * beginning of the following block.
+     * @dev Block number the storage root was commited, which is used to retrieve user's votes and quorum.
      */
     function proposalSnapshot(uint256 proposalId)
         public
         view
         virtual
-        returns (bytes32);
+        returns (uint256);
 
     /**
      * @notice module:core
@@ -169,7 +168,6 @@ abstract contract IRollCallGovernor is IERC165 {
      * Emits a {ProposalCreated} event.
      */
     function propose(
-        uint256 snapshot,
         bytes memory blockHeaderRLP,
         address[] memory targets,
         uint256[] memory values,

@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {iOVM_CrossDomainMessenger} from "../interfaces/iOVM_CrossDomainMessenger.sol";
 
-contract iOVM_FakeCrossDomainMessenger is iOVM_CrossDomainMessenger {
+contract OVM_FakeCrossDomainMessenger is iOVM_CrossDomainMessenger {
     address sender;
 
     function xDomainMessageSender() external view override returns (address) {

@@ -9,11 +9,11 @@ import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 
 contract RollCallBridge is Ownable {
-    iOVM_CrossDomainMessenger private immutable _ovm;
+    iOVM_CrossDomainMessenger private immutable _cdm;
     address public voter;
 
-    constructor(iOVM_CrossDomainMessenger ovm_) public {
-        _ovm = ovm_;
+    constructor(iOVM_CrossDomainMessenger cdm_) public {
+        _cdm = cdm_;
     }
 
     function setVoter(address voter_) external onlyOwner {
@@ -43,6 +43,20 @@ contract RollCallBridge is Ownable {
             proposal.end
         );
 
-        _ovm.sendMessage(voter, message, 1900000); // 1900000 gas is given for free
+        _cdm.sendMessage(voter, message, 1900000); // 1900000 gas is given for free
+    }
+
+    function tally() external onlyVoter {
+        
+    }
+
+    /**
+     * @dev Throws if called by any account other than the L2 voter contract.
+     */
+    modifier onlyVoter() {
+        require(
+            msg.sender == address(_cdm) && _cdm.xDomainMessageSender() == voter
+        );
+        _;
     }
 }
