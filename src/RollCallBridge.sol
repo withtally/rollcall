@@ -4,11 +4,12 @@ pragma experimental ABIEncoderV2;
 
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
+import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 
-contract RollCallBridge is Ownable {
+contract RollCallBridge is IRollCallBridge, Ownable {
     iOVM_CrossDomainMessenger private immutable _cdm;
     address public voter;
 
@@ -20,7 +21,7 @@ contract RollCallBridge is Ownable {
         voter = voter_;
     }
 
-    function propose(uint256 id) external {
+    function propose(uint256 id) external override {
         IRollCallGovernor governor = IRollCallGovernor(msg.sender);
         address token = governor.token();
         bytes32 slot = governor.slot();
@@ -46,9 +47,11 @@ contract RollCallBridge is Ownable {
         _cdm.sendMessage(voter, message, 1900000); // 1900000 gas is given for free
     }
 
-    function tally() external onlyVoter {
-        
-    }
+    function finalize(
+        address governor,
+        uint256 id,
+        uint256[10] memory votes
+    ) external override onlyVoter {}
 
     /**
      * @dev Throws if called by any account other than the L2 voter contract.

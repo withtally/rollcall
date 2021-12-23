@@ -16,7 +16,7 @@ abstract contract IRollCallVoter is IERC165 {
         Pending,
         Active,
         Ended,
-        Canceled
+        Finalized
     }
 
     /**
@@ -52,6 +52,12 @@ abstract contract IRollCallVoter is IERC165 {
         bytes32 root,
         uint64 start,
         uint64 end
+    ) external virtual;
+
+    function finalize(
+        address governor,
+        uint256 id,
+        uint32 gaslimit
     ) external virtual;
 
     /**

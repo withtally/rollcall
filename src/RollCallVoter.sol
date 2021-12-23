@@ -11,7 +11,7 @@ import {IERC165} from "openzeppelin-contracts/introspection/IERC165.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
-import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
+import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 
 import {iOVM_L1BlockNumber} from "./interfaces/iOVM_L1BlockNumber.sol";
@@ -29,7 +29,7 @@ import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
  * - Additionanly, the {votingPeriod} must also be implemented
  *
  */
-contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
+contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     using SafeMath for uint256;
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
@@ -97,7 +97,7 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev See {IRollCallGovernor-state}.
+     * @dev See {IRollCallVoter-state}.
      */
     function state(address governor, uint256 id)
         public
@@ -109,6 +109,10 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         Proposal storage proposal = proposals[governor][id];
 
         require(proposal.start != 0, "rollcall: proposal vote doesnt exist");
+
+        if (proposal.finalized) {
+            return ProposalState.Finalized;
+        }
 
         if (proposal.start > blocknumber()) {
             return ProposalState.Pending;
@@ -138,26 +142,23 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         proposal.end = end;
     }
 
-    function tally(address governor, uint256 id) external {
-        Proposal memory proposal = proposals[governor][id];
-        // TODO: Use L1 block number
-        require(proposal.end < block.number, "voter: voting in progress");
-        require(!proposal.finalized, "voter: already finalized");
+    function finalize(
+        address governor,
+        uint256 id,
+        uint32 gaslimit
+    ) override external {
+        require(state(governor, id) == ProposalState.Ended, "voter: not ready");
 
-        proposal.finalized = true;
+        proposals[governor][id].finalized = true;
 
         bytes memory message = abi.encodeWithSelector(
-            IRollCallGovernor.finalize.selector,
+            IRollCallBridge.finalize.selector,
             governor,
-            id
-            // slot,
-            // id,
-            // proposal.root,
-            // proposal.start,
-            // proposal.end
+            id,
+            votes[governor][id]
         );
 
-        _cdm.sendMessage(_bridge, message, 1000000);
+        _cdm.sendMessage(_bridge, message, gaslimit);
     }
 
     /**
@@ -273,6 +274,9 @@ contract RollCallVoter is Context, ERC165, EIP712, IRollCallVoter {
         _;
     }
 
+    /**
+     * @dev Returns the most recent layer 1 block number. This lags by 50 blocks (~15mins).
+     */
     function blocknumber() private view returns (uint256) {
         return
             iOVM_L1BlockNumber(

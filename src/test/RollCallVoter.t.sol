@@ -124,7 +124,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
     }
 }
 
-contract RollCallVoterState is RollCallVoterSetup {
+contract RollCallVoter_State is RollCallVoterSetup {
     uint64 internal bn = uint64(block.timestamp);
     uint64 internal start = bn + 10;
     uint64 internal end = bn + 100;
@@ -163,6 +163,13 @@ contract RollCallVoterState is RollCallVoterSetup {
         assertEq(
             uint256(voter.state(address(governor), 1)),
             uint256(IRollCallVoter.ProposalState.Ended)
+        );
+
+        voter.finalize(address(governor), 1, 1e6);
+        emit log_uint(uint256(IRollCallVoter.ProposalState.Finalized));
+        assertEq(
+            uint256(voter.state(address(governor), 1)),
+            uint256(IRollCallVoter.ProposalState.Finalized)
         );
 
         vm.expectRevert("rollcall: proposal vote doesnt exist");
