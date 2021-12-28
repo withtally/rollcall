@@ -250,7 +250,6 @@ abstract contract RollCallGovernor is
      */
     function _countVote(
         uint256 proposalId,
-        address account,
         uint8 support,
         uint256 weight
     ) internal virtual;
@@ -321,7 +320,11 @@ abstract contract RollCallGovernor is
         return proposalId;
     }
 
-    function finalize(address governor, uint256 id) external override {}
+    function finalize(uint256 id, uint256[10] memory votes) external override {
+        for (uint8 i = 0; i < votes.length; i++) {
+            _countVote(id, i, votes[i]);
+        }
+    }
 
     /**
      * @dev See {IRollCallGovernor-execute}.

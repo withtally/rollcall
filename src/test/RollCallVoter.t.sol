@@ -23,7 +23,7 @@ contract GovernanceERC20 is ERC20 {
     }
 }
 
-contract RollCallProposer {
+contract RollCallGovernor {
     RollCallBridge internal bridge;
 
     mapping(uint256 => IRollCallGovernor.Proposal) internal proposals;
@@ -54,6 +54,11 @@ contract RollCallProposer {
         return
             0x9f9913eb00db1630cca84a7a1706a631e771278c4f0ef0d2bdce02e5911598b6;
     }
+
+    function finalize(uint256 id, uint256[10] calldata votes)
+        external
+        virtual
+    {}
 }
 
 contract RollCallVoterSetup is DSTest {
@@ -62,7 +67,7 @@ contract RollCallVoterSetup is DSTest {
     OVM_FakeCrossDomainMessenger internal cdm;
     RollCallBridge internal bridge;
     RollCallVoter internal voter;
-    RollCallProposer internal governor;
+    RollCallGovernor internal governor;
     OVM_FakeL1BlockNumber internal blocknumber;
 
     function setUp() public virtual {
@@ -80,7 +85,7 @@ contract RollCallVoterSetup is DSTest {
 
         voter = new RollCallVoter("rollcall", address(cdm), address(bridge));
 
-        governor = new RollCallProposer(address(bridge));
+        governor = new RollCallGovernor(address(bridge));
 
         bridge.setVoter(address(voter));
     }
@@ -166,7 +171,6 @@ contract RollCallVoter_State is RollCallVoterSetup {
         );
 
         voter.finalize(address(governor), 1, 1e6);
-        emit log_uint(uint256(IRollCallVoter.ProposalState.Finalized));
         assertEq(
             uint256(voter.state(address(governor), 1)),
             uint256(IRollCallVoter.ProposalState.Finalized)

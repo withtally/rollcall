@@ -175,7 +175,7 @@ abstract contract IRollCallGovernor is IERC165 {
         string memory description
     ) public virtual returns (uint256 proposalId);
 
-    function finalize(address governor, uint256 id) external virtual;
+    function finalize(uint256 id, uint256[10] calldata votes) external virtual;
 
     /**
      * @dev Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the

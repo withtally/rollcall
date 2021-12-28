@@ -12,6 +12,6 @@ abstract contract IRollCallBridge {
     function finalize(
         address governor,
         uint256 id,
-        uint256[10] memory votes
+        uint256[10] calldata votes
     ) external virtual;
 }

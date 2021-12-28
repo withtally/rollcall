@@ -101,17 +101,10 @@ abstract contract RollCallGovernorCountingSimple is RollCallGovernor {
      */
     function _countVote(
         uint256 proposalId,
-        address account,
         uint8 support,
         uint256 weight
     ) internal virtual override {
         ProposalVote storage proposalvote = _proposalVotes[proposalId];
-
-        require(
-            !proposalvote.hasVoted[account],
-            "GovernorVotingSimple: vote already cast"
-        );
-        proposalvote.hasVoted[account] = true;
 
         if (support == uint8(VoteType.Against)) {
             proposalvote.againstVotes += weight;

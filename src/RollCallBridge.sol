@@ -50,15 +50,18 @@ contract RollCallBridge is IRollCallBridge, Ownable {
     function finalize(
         address governor,
         uint256 id,
-        uint256[10] memory votes
-    ) external override onlyVoter {}
+        uint256[10] calldata votes
+    ) external override onlyVoter {
+        IRollCallGovernor(governor).finalize(id, votes);
+    }
 
     /**
      * @dev Throws if called by any account other than the L2 voter contract.
      */
     modifier onlyVoter() {
         require(
-            msg.sender == address(_cdm) && _cdm.xDomainMessageSender() == voter
+            msg.sender == address(_cdm) && _cdm.xDomainMessageSender() == voter,
+            "bridge: not voter"
         );
         _;
     }

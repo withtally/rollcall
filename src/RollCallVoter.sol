@@ -146,7 +146,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         address governor,
         uint256 id,
         uint32 gaslimit
-    ) override external {
+    ) external override {
         require(state(governor, id) == ProposalState.Ended, "voter: not ready");
 
         proposals[governor][id].finalized = true;
