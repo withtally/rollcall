@@ -7,7 +7,6 @@ import "openzeppelin-contracts/token/ERC20/ERC20.sol";
 import {RollCallBridge} from "../RollCallBridge.sol";
 import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
 import {RollCallGovernor} from "../RollCallGovernor.sol";
-import {RollCallGovernorBasic} from "../extensions/RollCallGovernorBasic.sol";
 
 contract GovernanceERC20 is ERC20 {
     constructor() public ERC20("Rollcall", "ROLLCALL") {}
@@ -28,7 +27,7 @@ contract RollCallGovernorTest is DSTest {
         bytes32[] memory slots = new bytes32[](1);
         slots[0] = bytes32("1");
 
-        governor = new RollCallGovernorBasic(
+        governor = new RollCallGovernor(
             "rollcall",
             sources,
             slots,

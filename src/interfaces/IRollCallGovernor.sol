@@ -12,13 +12,20 @@ import "openzeppelin-contracts/introspection/ERC165.sol";
  * _Available since v4.3._
  */
 abstract contract IRollCallGovernor is IERC165 {
-    struct Balance {
-        address source;
-        bytes32 slot;
+    /**
+     * @dev Supported vote types.
+     */
+    enum VoteType {
+        Against,
+        For,
+        Abstain
     }
 
     struct Proposal {
         uint256 snapshot;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        uint256 votesAbstain;
         bytes32 root;
         uint64 start;
         uint64 end;
@@ -79,25 +86,6 @@ abstract contract IRollCallGovernor is IERC165 {
      * @dev A governance proposal.
      */
     function proposal(uint256 id) public view virtual returns (Proposal memory);
-
-    /**
-     * @notice module:voting
-     * @dev A description of the possible `support` values for {castVote} and the way these votes are counted, meant to
-     * be consumed by UIs to show correct vote options and interpret the results. The string is a URL-encoded sequence of
-     * key-value pairs that each describe one aspect, for example `support=bravo&quorum=for,abstain`.
-     *
-     * There are 2 standard keys: `support` and `quorum`.
-     *
-     * - `support=bravo` refers to the vote options 0 = Against, 1 = For, 2 = Abstain, as in `GovernorBravo`.
-     * - `quorum=bravo` means that only For votes are counted towards quorum.
-     * - `quorum=for,abstain` means that both For and Abstain votes are counted towards quorum.
-     *
-     * NOTE: The string can be decoded by the standard
-     * https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams[`URLSearchParams`]
-     * JavaScript class.
-     */
-    // solhint-disable-next-line func-name-mixedcase
-    function COUNTING_MODE() public pure virtual returns (string memory);
 
     /**
      * @notice module:core

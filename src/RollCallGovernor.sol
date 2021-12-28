@@ -24,18 +24,9 @@ interface Token {
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
- *
- * This contract is abstract and requires several function to be implemented in various modules:
- *
- * - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
- * - Additionanly, the {votingPeriod} must also be implemented
- *
  */
-abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
+contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     using SafeMath for uint256;
-
-    bytes32 public constant BALLOT_TYPEHASH =
-        keccak256("Ballot(uint256 proposalId,uint8 support)");
 
     string private _name;
     IRollCallBridge private _bridge;
@@ -241,33 +232,43 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
+     * @notice module:user-config
+     * @dev Minimum number of cast voted required for a proposal to be successful.
+     *
+     * Note: The `blockNumber` parameter corresponds to the snaphot used for counting vote. This allows to scale the
+     * quroum depending on values such as the totalSupply of a token at this block (see {ERC20Votes}).
+     */
+    function quorum(uint256 blockNumber)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return 0;
+    }
+
+    /**
+     * @notice module:user-config
+     * @dev Delay, in number of blocks, between the vote start and vote ends.
+     */
+    function votingPeriod() public view override returns (uint256) {
+        return 0;
+    }
+
+    /**
      * @dev Amount of votes already cast passes the threshold limit.
      */
-    function _quorumReached(uint256 proposalId)
-        internal
-        view
-        virtual
-        returns (bool);
+    function _quorumReached(uint256 proposalId) internal view returns (bool) {
+        // TODO: Implement
+        return true;
+    }
 
     /**
      * @dev Is the proposal successful or not.
      */
-    function _voteSucceeded(uint256 proposalId)
-        internal
-        view
-        virtual
-        returns (bool);
-
-    /**
-     * @dev Register a vote with a given support and voting weight.
-     *
-     * Note: Support is generic and can represent various things depending on the voting system used.
-     */
-    function _countVote(
-        uint256 proposalId,
-        uint8 support,
-        uint256 weight
-    ) internal virtual;
+    function _voteSucceeded(uint256 id) internal view returns (bool) {
+        return _proposals[id].votesFor > _proposals[id].votesAgainst;
+    }
 
     /**
      * @dev See {IRollCallGovernor-propose}.
@@ -337,10 +338,11 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         return proposalId;
     }
 
+    // TODO: Only bridge
     function finalize(uint256 id, uint256[3] memory votes) external override {
-        for (uint8 i = 0; i < votes.length; i++) {
-            _countVote(id, i, votes[i]);
-        }
+        _proposals[id].votesAgainst.add(votes[0]);
+        _proposals[id].votesFor.add(votes[1]);
+        _proposals[id].votesAbstain.add(votes[2]);
     }
 
     /**
@@ -352,40 +354,22 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         bytes[] memory calldatas,
         bytes32 descriptionHash
     ) public payable virtual override returns (uint256) {
-        uint256 proposalId = hashProposal(
-            targets,
-            values,
-            calldatas,
-            descriptionHash
-        );
+        uint256 id = hashProposal(targets, values, calldatas, descriptionHash);
 
-        ProposalState status = state(proposalId);
+        ProposalState status = state(id);
         require(
             status == ProposalState.Succeeded || status == ProposalState.Queued,
             "governor: proposal not successful"
         );
-        _proposals[proposalId].executed = true;
+        _proposals[id].executed = true;
 
-        emit ProposalExecuted(proposalId);
+        emit ProposalExecuted(id);
 
-        _execute(proposalId, targets, values, calldatas, descriptionHash);
-
-        return proposalId;
-    }
-
-    /**
-     * @dev Internal execution mechanism. Can be overriden to implement different execution mechanism
-     */
-    function _execute(
-        uint256, /* proposalId */
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        bytes32 /*descriptionHash*/
-    ) internal virtual {
         for (uint256 i = 0; i < targets.length; ++i) {
             Address.functionCallWithValue(targets[i], calldatas[i], values[i]);
         }
+
+        return id;
     }
 
     /**

@@ -104,6 +104,9 @@ contract RollCallVoterProposing is RollCallVoterSetup {
             1,
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
+                votesFor: 0,
+                votesAgainst: 0,
+                votesAbstain: 0,
                 root: hex"1512cc8e18327bfbe120a6298046e5f6fe174155b7a2baceba5adacff6fc5749",
                 start: ts,
                 end: ts + 100,
@@ -143,6 +146,9 @@ contract RollCallVoter_State is RollCallVoterSetup {
             1,
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
+                votesFor: 0,
+                votesAgainst: 0,
+                votesAbstain: 0,
                 root: hex"1512cc8e18327bfbe120a6298046e5f6fe174155b7a2baceba5adacff6fc5749",
                 start: start,
                 end: end,
@@ -197,6 +203,9 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
             1,
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
+                votesFor: 0,
+                votesAgainst: 0,
+                votesAbstain: 0,
                 root: hex"1512cc8e18327bfbe120a6298046e5f6fe174155b7a2baceba5adacff6fc5749",
                 start: start,
                 end: end,
