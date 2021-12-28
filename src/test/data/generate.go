@@ -41,7 +41,7 @@ func main() {
 
 	contract := "0x7ae1d57b58fa6411f32948314badd83583ee0e8c"
 	keys := []string{"0x9f9913eb00db1630cca84a7a1706a631e771278c4f0ef0d2bdce02e5911598b6"}
-	height := big.NewInt(13843551)
+	height := big.NewInt(13843553)
 
 	block, err := ethClient.BlockByNumber(ctx, height)
 	if err != nil {
