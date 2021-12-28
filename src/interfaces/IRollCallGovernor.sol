@@ -12,6 +12,11 @@ import "openzeppelin-contracts/introspection/ERC165.sol";
  * _Available since v4.3._
  */
 abstract contract IRollCallGovernor is IERC165 {
+    struct Balance {
+        address source;
+        bytes32 slot;
+    }
+
     struct Proposal {
         uint256 snapshot;
         bytes32 root;
@@ -76,16 +81,6 @@ abstract contract IRollCallGovernor is IERC165 {
     function proposal(uint256 id) public view virtual returns (Proposal memory);
 
     /**
-     * @notice module:core
-     */
-    function token() external view virtual returns (address);
-
-    /**
-     * @notice module:core
-     */
-    function slot() external view virtual returns (bytes32);
-
-    /**
      * @notice module:voting
      * @dev A description of the possible `support` values for {castVote} and the way these votes are counted, meant to
      * be consumed by UIs to show correct vote options and interpret the results. The string is a URL-encoded sequence of
@@ -103,6 +98,16 @@ abstract contract IRollCallGovernor is IERC165 {
      */
     // solhint-disable-next-line func-name-mixedcase
     function COUNTING_MODE() public pure virtual returns (string memory);
+
+    /**
+     * @notice module:core
+     */
+    function sources() external view virtual returns (address[] memory);
+
+    /**
+     * @notice module:core
+     */
+    function slots() external view virtual returns (bytes32[] memory);
 
     /**
      * @notice module:core
@@ -175,7 +180,7 @@ abstract contract IRollCallGovernor is IERC165 {
         string memory description
     ) public virtual returns (uint256 proposalId);
 
-    function finalize(uint256 id, uint256[10] calldata votes) external virtual;
+    function finalize(uint256 id, uint256[3] calldata votes) external virtual;
 
     /**
      * @dev Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the

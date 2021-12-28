@@ -2,15 +2,17 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
+
 import "../extensions/RollCallGovernorCountingSimple.sol";
 
 contract RollCallGovernorBasic is RollCallGovernorCountingSimple {
     constructor(
         string memory name_,
-        address token_,
-        bytes32 slot_,
+        address[] memory sources_,
+        bytes32[] memory slots_,
         address bridge_
-    ) RollCallGovernor(name_, token_, slot_, bridge_) public {}
+    ) public RollCallGovernor(name_, sources_, slots_, bridge_) {}
 
     /**
      * @notice module:user-config
@@ -19,7 +21,12 @@ contract RollCallGovernorBasic is RollCallGovernorCountingSimple {
      * Note: The `blockNumber` parameter corresponds to the snaphot used for counting vote. This allows to scale the
      * quroum depending on values such as the totalSupply of a token at this block (see {ERC20Votes}).
      */
-    function quorum(uint256 blockNumber) public view override returns (uint256) {
+    function quorum(uint256 blockNumber)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return 0;
     }
 

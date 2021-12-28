@@ -23,22 +23,14 @@ contract RollCallBridge is IRollCallBridge, Ownable {
 
     function propose(uint256 id) external override {
         IRollCallGovernor governor = IRollCallGovernor(msg.sender);
-        address token = governor.token();
-        bytes32 slot = governor.slot();
-
         IRollCallGovernor.Proposal memory proposal = governor.proposal(id);
-
-        require(
-            proposal.end > block.timestamp,
-            "bridge: proposal end before now"
-        );
 
         bytes memory message = abi.encodeWithSelector(
             IRollCallVoter.propose.selector,
             msg.sender,
-            token,
-            slot,
             id,
+            governor.sources(),
+            governor.slots(),
             proposal.root,
             proposal.start,
             proposal.end
@@ -50,7 +42,7 @@ contract RollCallBridge is IRollCallBridge, Ownable {
     function finalize(
         address governor,
         uint256 id,
-        uint256[10] calldata votes
+        uint256[3] calldata votes
     ) external override onlyVoter {
         IRollCallGovernor(governor).finalize(id, votes);
     }

@@ -5,11 +5,12 @@ import "ds-test/test.sol";
 import "openzeppelin-contracts/token/ERC20/ERC20.sol";
 
 import {RollCallBridge} from "../RollCallBridge.sol";
+import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
 import {RollCallGovernor} from "../RollCallGovernor.sol";
 import {RollCallGovernorBasic} from "../extensions/RollCallGovernorBasic.sol";
 
 contract GovernanceERC20 is ERC20 {
-    constructor() ERC20("Rollcall", "ROLLCALL") public {}
+    constructor() public ERC20("Rollcall", "ROLLCALL") {}
 
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
@@ -22,10 +23,15 @@ contract RollCallGovernorTest is DSTest {
     RollCallGovernor internal governor;
 
     function setUp() public {
+        address[] memory sources = new address[](1);
+        sources[0] = address(token);
+        bytes32[] memory slots = new bytes32[](1);
+        slots[0] = bytes32("1");
+
         governor = new RollCallGovernorBasic(
             "rollcall",
-            address(token),
-            bytes32('1'),
+            sources,
+            slots,
             address(bridge)
         );
     }
@@ -34,4 +40,3 @@ contract RollCallGovernorTest is DSTest {
         assertTrue(true);
     }
 }
-

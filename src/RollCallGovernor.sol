@@ -5,7 +5,6 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import {SafeMath} from "openzeppelin-contracts/math/SafeMath.sol";
-import {Context} from "openzeppelin-contracts/utils/Context.sol";
 import {EIP712} from "openzeppelin-contracts/drafts/EIP712.sol";
 import {ERC165} from "openzeppelin-contracts/introspection/ERC165.sol";
 import {IERC165} from "openzeppelin-contracts/introspection/IERC165.sol";
@@ -32,22 +31,17 @@ interface Token {
  * - Additionanly, the {votingPeriod} must also be implemented
  *
  */
-abstract contract RollCallGovernor is
-    Context,
-    ERC165,
-    EIP712,
-    IRollCallGovernor
-{
+abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     using SafeMath for uint256;
 
     bytes32 public constant BALLOT_TYPEHASH =
         keccak256("Ballot(uint256 proposalId,uint8 support)");
 
     string private _name;
-    address public override token;
-    bytes32 public override slot;
     IRollCallBridge private _bridge;
 
+    address[] private _sources;
+    bytes32[] private _slots;
     mapping(uint256 => Proposal) private _proposals;
 
     /**
@@ -55,7 +49,7 @@ abstract contract RollCallGovernor is
      * sure this modifier is consistant with the execution model.
      */
     modifier onlyGovernance() {
-        require(_msgSender() == _executor(), "governor: not governance");
+        require(msg.sender == _executor(), "governor: not governance");
         _;
     }
 
@@ -64,14 +58,21 @@ abstract contract RollCallGovernor is
      */
     constructor(
         string memory name_,
-        address token_,
-        bytes32 slot_,
+        address[] memory sources_,
+        bytes32[] memory slots_,
         address bridge_
     ) public EIP712(name_, version()) {
+        require(
+            sources_.length == slots_.length,
+            "governor: sources slots length mismatch"
+        );
         _name = name_;
-        token = token_;
-        slot = slot_;
         _bridge = IRollCallBridge(bridge_);
+
+        for (uint256 i = 0; i < sources_.length; i++) {
+            _sources[i] = sources_[i];
+            _slots[i] = slots_[i];
+        }
     }
 
     /**
@@ -108,6 +109,20 @@ abstract contract RollCallGovernor is
      */
     function version() public view virtual override returns (string memory) {
         return "1";
+    }
+
+    /**
+     * @dev See {IRollCallGovernor-sources}.
+     */
+    function sources() external view override returns (address[] memory) {
+        return _sources;
+    }
+
+    /**
+     * @dev See {IRollCallGovernor-slots}.
+     */
+    function slots() external view override returns (bytes32[] memory) {
+        return _slots;
     }
 
     /**
@@ -264,8 +279,10 @@ abstract contract RollCallGovernor is
         bytes[] memory calldatas,
         string memory description
     ) public virtual override returns (uint256) {
+        // NOTE: Currently we are assuming the source balance is a token balance,
+        // and we are always using the first defined source.
         require(
-            Token(token).balanceOf(msg.sender) >= proposalThreshold(),
+            Token(_sources[0]).balanceOf(msg.sender) >= proposalThreshold(),
             "governor: proposer votes below proposal threshold"
         );
 
@@ -307,7 +324,7 @@ abstract contract RollCallGovernor is
 
         emit ProposalCreated(
             proposalId,
-            _msgSender(),
+            msg.sender,
             targets,
             values,
             new string[](targets.length),
@@ -320,7 +337,7 @@ abstract contract RollCallGovernor is
         return proposalId;
     }
 
-    function finalize(uint256 id, uint256[10] memory votes) external override {
+    function finalize(uint256 id, uint256[3] memory votes) external override {
         for (uint8 i = 0; i < votes.length; i++) {
             _countVote(id, i, votes[i]);
         }

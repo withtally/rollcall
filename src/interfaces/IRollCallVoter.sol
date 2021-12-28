@@ -6,6 +6,8 @@ pragma experimental ABIEncoderV2;
 
 import "openzeppelin-contracts/introspection/ERC165.sol";
 
+import {IRollCallGovernor} from "./IRollCallGovernor.sol";
+
 /**
  * @dev Interface of the {RollCallVoter} core.
  *
@@ -46,9 +48,9 @@ abstract contract IRollCallVoter is IERC165 {
 
     function propose(
         address governor,
-        address token,
-        bytes32 slot,
         uint256 id,
+        address[] memory sources,
+        bytes32[] memory slots,
         bytes32 root,
         uint64 start,
         uint64 end
@@ -64,7 +66,7 @@ abstract contract IRollCallVoter is IERC165 {
      * @notice module:core
      * @dev Current state of a proposal vote
      */
-    function state(address token, uint256 id)
+    function state(address governor, uint256 id)
         public
         view
         virtual
@@ -87,6 +89,7 @@ abstract contract IRollCallVoter is IERC165 {
      */
     function castVote(
         uint256 id,
+        address token,
         address governor,
         bytes memory proofRlp,
         uint8 support
@@ -99,6 +102,7 @@ abstract contract IRollCallVoter is IERC165 {
      */
     function castVoteWithReason(
         uint256 id,
+        address token,
         address governor,
         bytes memory proofRlp,
         uint8 support,
@@ -112,6 +116,7 @@ abstract contract IRollCallVoter is IERC165 {
      */
     function castVoteBySig(
         uint256 id,
+        address token,
         address governor,
         bytes memory proofRlp,
         uint8 support,

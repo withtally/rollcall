@@ -12,6 +12,7 @@ import {Address} from "openzeppelin-contracts/utils/Address.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
+import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 
 import {iOVM_L1BlockNumber} from "./interfaces/iOVM_L1BlockNumber.sol";
@@ -38,13 +39,12 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         keccak256("Ballot(uint256 id,uint8 support)");
 
     struct Proposal {
-        address token;
         bytes32 root;
-        bytes32 slot;
         uint64 start;
         uint64 end;
         bool finalized;
         mapping(address => bool) voted;
+        mapping(address => bytes32) slots;
     }
 
     string private _name;
@@ -52,7 +52,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     address private _bridge;
 
     mapping(address => mapping(uint256 => Proposal)) public proposals;
-    mapping(address => mapping(uint256 => uint256[10])) public votes;
+    mapping(address => mapping(uint256 => uint256[3])) public votes;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -127,19 +127,21 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
     function propose(
         address governor,
-        address token,
-        bytes32 slot,
         uint256 id,
+        address[] memory sources,
+        bytes32[] memory slots,
         bytes32 root,
         uint64 start,
         uint64 end
     ) external override onlyBridge {
         Proposal storage proposal = proposals[governor][id];
-        proposal.token = token;
-        proposal.slot = slot;
         proposal.root = root;
         proposal.start = start;
         proposal.end = end;
+
+        for (uint256 i = 0; i < slots.length; i++) {
+            proposal.slots[sources[i]] = slots[i];
+        }
     }
 
     function finalize(
@@ -178,11 +180,13 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function castVote(
         uint256 id,
+        address token,
         address governor,
         bytes memory proofRlp,
         uint8 support
     ) public virtual override returns (uint256) {
-        return _castVote(id, governor, msg.sender, proofRlp, support, "");
+        return
+            _castVote(id, token, governor, msg.sender, proofRlp, support, "");
     }
 
     /**
@@ -190,12 +194,22 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function castVoteWithReason(
         uint256 id,
+        address token,
         address governor,
         bytes memory proofRlp,
         uint8 support,
         string calldata reason
     ) public virtual override returns (uint256) {
-        return _castVote(id, governor, msg.sender, proofRlp, support, reason);
+        return
+            _castVote(
+                id,
+                token,
+                governor,
+                msg.sender,
+                proofRlp,
+                support,
+                reason
+            );
     }
 
     /**
@@ -203,6 +217,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function castVoteBySig(
         uint256 id,
+        address token,
         address governor,
         bytes memory proofRlp,
         uint8 support,
@@ -218,7 +233,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
             r,
             s
         );
-        return _castVote(id, governor, voter, proofRlp, support, "");
+        return _castVote(id, token, governor, voter, proofRlp, support, "");
     }
 
     /**
@@ -229,6 +244,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function _castVote(
         uint256 id,
+        address token,
         address governor,
         address account,
         bytes memory proofRlp,
@@ -248,7 +264,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
 
         Verifier.SlotValue memory balance = Verifier.extractSlotValueFromProof(
-            keccak256(abi.encodePacked(proposal.slot)),
+            keccak256(abi.encodePacked(proposal.slots[token])),
             proposal.root,
             proofs
         );

@@ -3,12 +3,16 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import {SafeMath} from "openzeppelin-contracts/math/SafeMath.sol";
+
 import "../RollCallGovernor.sol";
 
 /**
  * @dev Extension of {Governor} for simple, 3 options, vote counting.
  */
 abstract contract RollCallGovernorCountingSimple is RollCallGovernor {
+    using SafeMath for uint256;
+
     /**
      * @dev Supported vote types. Matches Governor Bravo ordering.
      */
@@ -107,13 +111,11 @@ abstract contract RollCallGovernorCountingSimple is RollCallGovernor {
         ProposalVote storage proposalvote = _proposalVotes[proposalId];
 
         if (support == uint8(VoteType.Against)) {
-            proposalvote.againstVotes += weight;
+            proposalvote.againstVotes.add(weight);
         } else if (support == uint8(VoteType.For)) {
-            proposalvote.forVotes += weight;
+            proposalvote.forVotes.add(weight);
         } else if (support == uint8(VoteType.Abstain)) {
-            proposalvote.abstainVotes += weight;
-        } else {
-            revert("GovernorVotingSimple: invalid value for enum VoteType");
+            proposalvote.abstainVotes.add(weight);
         }
     }
 }
