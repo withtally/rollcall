@@ -1,13 +1,22 @@
 name: tests
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
 jobs:
   tests:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -15,5 +24,5 @@ jobs:
         with:
           command: install
           args: --git https://github.com/gakonst/foundry --bin forge --locked
-      - run: forge install
+      - run: forge update
       - run: forge test --force --verbosity 5
