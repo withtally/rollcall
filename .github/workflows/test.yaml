@@ -24,6 +24,6 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --git https://github.com/gakonst/foundry --bin forge --commit ${{env.FOUNDRY_VERSION}} --locked
+          args: --git https://github.com/gakonst/foundry --bin forge --rev ${{env.FOUNDRY_VERSION}} --locked
       - run: forge update
       - run: forge test --force --verbosity 5
