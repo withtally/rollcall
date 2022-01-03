@@ -46,18 +46,17 @@ contract RollCallGovernorSetup is DSTest {
     GovernanceERC20 internal token;
     OVM_FakeCrossDomainMessenger internal cdm;
     RollCallBridge internal bridge;
-    RollCallGovernor internal governor;
+    SimpleRollCallGovernor internal governor;
 
-    address[] internal sources;
-    bytes32[] internal slots;
+    address[] internal sources = new address[](1);
+    bytes32[] internal slots = new bytes32[](1);
 
     function setUp() public virtual {
+        token = new GovernanceERC20();
         cdm = new OVM_FakeCrossDomainMessenger();
         bridge = new RollCallBridge(cdm);
 
-        sources = new address[](1);
         sources[0] = address(token);
-        slots = new bytes32[](1);
         slots[0] = bytes32("1");
 
         governor = new SimpleRollCallGovernor(
@@ -82,7 +81,7 @@ contract RollCallGovernor_Constructor is DSTest {
     }
 }
 
-contract RollCallGovernor_Propose is RollCallGovernorSetup {
+contract RollCallGovernor_Metadata is RollCallGovernorSetup {
     function testExpectInitialMetadata() public {
         for (uint256 i = 0; i < slots.length; i++) {
             assertEq(governor.slots()[i], slots[i], "slots mismatch");

@@ -68,7 +68,7 @@ contract RollCallVoterTester is RollCallVoter {
         address bridge_
     ) public RollCallVoter(name_, cdm_, bridge_) {}
 
-    function hashTypedDataV4(uint256 id, uint256 support)
+    function hashTypedDataV4(bytes32 id, uint256 support)
         public
         view
         virtual
@@ -157,6 +157,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
 }
 
 contract RollCallVoter_State is RollCallVoterSetup {
+    bytes32 private id = bytes32(uint256(1));
     uint64 internal bn = uint64(block.timestamp);
     uint64 internal start = bn + 10;
     uint64 internal end = bn + 100;
@@ -182,36 +183,37 @@ contract RollCallVoter_State is RollCallVoterSetup {
 
     function testReturnsCorrectProposalState() public {
         assertEq(
-            uint256(voter.state(address(governor), 1)),
+            uint256(voter.state(address(governor), id)),
             uint256(IRollCallVoter.ProposalState.Pending),
             "proposal not pending"
         );
 
         blocknumber.setL1BlockNumber(start);
         assertEq(
-            uint256(voter.state(address(governor), 1)),
+            uint256(voter.state(address(governor), id)),
             uint256(IRollCallVoter.ProposalState.Active),
             "proposal not active"
         );
 
         blocknumber.setL1BlockNumber(end);
         assertEq(
-            uint256(voter.state(address(governor), 1)),
+            uint256(voter.state(address(governor), id)),
             uint256(IRollCallVoter.ProposalState.Ended)
         );
 
-        voter.finalize(address(governor), 1, 1e6);
+        voter.finalize(address(governor), id, 1e6);
         assertEq(
-            uint256(voter.state(address(governor), 1)),
+            uint256(voter.state(address(governor), id)),
             uint256(IRollCallVoter.ProposalState.Finalized)
         );
 
         vm.expectRevert("rollcall: proposal vote doesnt exist");
-        voter.state(address(governor), 2);
+        voter.state(address(governor), bytes32(uint256(2)));
     }
 }
 
 contract RollCallVoter_Voting is RollCallVoterSetup {
+    bytes32 private id = bytes32(uint256(1));
     uint64 internal bn = uint64(block.number);
     uint64 internal start = bn + 10;
     uint64 internal end = bn + 100;
@@ -239,7 +241,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
 
     function testProposalState() public {
         (bytes32 root_, uint64 start_, uint64 end_, bool finalized_) = voter
-            .proposals(address(governor), 1);
+            .proposals(address(governor), id);
 
         assertEq(
             root_,
@@ -260,7 +262,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         vm.startPrank(0xba740c9035fF3c24A69e0df231149c9cd12BAe07);
         assertEq(
             voter.castVote(
-                1,
+                id,
                 0x7aE1D57b58fA6411F32948314BadD83583eE0e8C,
                 address(governor),
                 proof,
@@ -279,7 +281,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         vm.startPrank(0xba740c9035fF3c24A69e0df231149c9cd12BAe07);
         assertEq(
             voter.castVoteWithReason(
-                1,
+                id,
                 0x7aE1D57b58fA6411F32948314BadD83583eE0e8C,
                 address(governor),
                 proof,
@@ -292,11 +294,11 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
     }
 
     function testCastVoteBySig() public {
-        uint256 id = 2;
+        id = bytes32(uint256(2));
         uint8 support = 1;
 
         governor.propose(
-            bytes32(uint256(2)),
+            id,
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
                 votesFor: 0,
@@ -344,7 +346,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
 
         vm.startPrank(0xba740c9035fF3c24A69e0df231149c9cd12BAe07);
         voter.castVote(
-            1,
+            id,
             0x7aE1D57b58fA6411F32948314BadD83583eE0e8C,
             address(governor),
             proof,
@@ -353,7 +355,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
 
         vm.expectRevert("rollcall: already voted");
         voter.castVote(
-            1,
+            id,
             0x7aE1D57b58fA6411F32948314BadD83583eE0e8C,
             address(governor),
             proof,
@@ -368,7 +370,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         vm.startPrank(0xba740c9035fF3c24A69e0df231149c9cd12BAe07);
         vm.expectRevert("root hash mismatch");
         voter.castVote(
-            1,
+            id,
             0x7aE1D57b58fA6411F32948314BadD83583eE0e8C,
             address(governor),
             proof,
@@ -383,7 +385,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         vm.startPrank(address(0));
         vm.expectRevert("voter: balance doesnt exist");
         voter.castVote(
-            1,
+            id,
             0x7aE1D57b58fA6411F32948314BadD83583eE0e8C,
             address(governor),
             proof,

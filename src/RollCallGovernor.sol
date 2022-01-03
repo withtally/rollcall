@@ -64,8 +64,8 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         _bridge = IRollCallBridge(bridge_);
 
         for (uint256 i = 0; i < sources_.length; i++) {
-            _sources[i] = sources_[i];
-            _slots[i] = slots_[i];
+            _sources.push(sources_[i]);
+            _slots.push(slots_[i]);
         }
     }
 

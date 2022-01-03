@@ -36,7 +36,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     using RLPReader for RLPReader.RLPItem;
 
     bytes32 public constant BALLOT_TYPEHASH =
-        keccak256("Ballot(uint256 id,uint8 support)");
+        keccak256("Ballot(bytes32 id,uint8 support)");
 
     struct Proposal {
         bytes32 root;
@@ -51,8 +51,8 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     iOVM_CrossDomainMessenger private immutable _cdm;
     address private _bridge;
 
-    mapping(address => mapping(uint256 => Proposal)) public proposals;
-    mapping(address => mapping(uint256 => uint256[3])) public votes;
+    mapping(address => mapping(bytes32 => Proposal)) public proposals;
+    mapping(address => mapping(bytes32 => uint256[3])) public votes;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -99,7 +99,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     /**
      * @dev See {IRollCallVoter-state}.
      */
-    function state(address governor, uint256 id)
+    function state(address governor, bytes32 id)
         public
         view
         virtual
@@ -127,7 +127,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
     function propose(
         address governor,
-        uint256 id,
+        bytes32 id,
         address[] memory sources,
         bytes32[] memory slots,
         bytes32 root,
@@ -146,7 +146,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
     function finalize(
         address governor,
-        uint256 id,
+        bytes32 id,
         uint32 gaslimit
     ) external override {
         require(state(governor, id) == ProposalState.Ended, "voter: not ready");
@@ -169,7 +169,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function hasVoted(
         address governor,
-        uint256 id,
+        bytes32 id,
         address account
     ) public view override returns (bool) {
         return proposals[governor][id].voted[account];
@@ -179,7 +179,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      * @dev See {IRollCallVoter-castVote}.
      */
     function castVote(
-        uint256 id,
+        bytes32 id,
         address source,
         address governor,
         bytes memory proofRlp,
@@ -193,7 +193,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      * @dev See {IRollCallVoter-castVoteWithReason}.
      */
     function castVoteWithReason(
-        uint256 id,
+        bytes32 id,
         address source,
         address governor,
         bytes memory proofRlp,
@@ -216,7 +216,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      * @dev See {IRollCallVoter-castVoteBySig}.
      */
     function castVoteBySig(
-        uint256 id,
+        bytes32 id,
         address source,
         address governor,
         bytes memory proofRlp,
@@ -242,7 +242,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      * Emits a {IRollCallVoter-VoteCast} event.
      */
     function _castVote(
-        uint256 id,
+        bytes32 id,
         address source,
         address governor,
         address voter,

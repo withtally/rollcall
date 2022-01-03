@@ -28,7 +28,7 @@ abstract contract IRollCallVoter is IERC165 {
      */
     event VoteCast(
         address indexed voter,
-        uint256 id,
+        bytes32 id,
         uint8 support,
         uint256 weight,
         string reason
@@ -48,7 +48,7 @@ abstract contract IRollCallVoter is IERC165 {
 
     function propose(
         address governor,
-        uint256 id,
+        bytes32 id,
         address[] memory sources,
         bytes32[] memory slots,
         bytes32 root,
@@ -58,7 +58,7 @@ abstract contract IRollCallVoter is IERC165 {
 
     function finalize(
         address governor,
-        uint256 id,
+        bytes32 id,
         uint32 gaslimit
     ) external virtual;
 
@@ -66,7 +66,7 @@ abstract contract IRollCallVoter is IERC165 {
      * @notice module:core
      * @dev Current state of a proposal vote
      */
-    function state(address governor, uint256 id)
+    function state(address governor, bytes32 id)
         public
         view
         virtual
@@ -78,7 +78,7 @@ abstract contract IRollCallVoter is IERC165 {
      */
     function hasVoted(
         address governor,
-        uint256 id,
+        bytes32 id,
         address account
     ) public view virtual returns (bool);
 
@@ -88,7 +88,7 @@ abstract contract IRollCallVoter is IERC165 {
      * Emits a {VoteCast} event.
      */
     function castVote(
-        uint256 id,
+        bytes32 id,
         address token,
         address governor,
         bytes memory proofRlp,
@@ -101,7 +101,7 @@ abstract contract IRollCallVoter is IERC165 {
      * Emits a {VoteCast} event.
      */
     function castVoteWithReason(
-        uint256 id,
+        bytes32 id,
         address token,
         address governor,
         bytes memory proofRlp,
@@ -115,7 +115,7 @@ abstract contract IRollCallVoter is IERC165 {
      * Emits a {VoteCast} event.
      */
     function castVoteBySig(
-        uint256 id,
+        bytes32 id,
         address token,
         address governor,
         bytes memory proofRlp,
