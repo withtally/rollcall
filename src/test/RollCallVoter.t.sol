@@ -26,18 +26,18 @@ contract GovernanceERC20 is ERC20 {
 contract RollCallGovernor {
     RollCallBridge internal bridge;
 
-    mapping(uint256 => IRollCallGovernor.Proposal) internal proposals;
+    mapping(bytes32 => IRollCallGovernor.Proposal) internal proposals;
 
     constructor(address bridge_) public {
         bridge = RollCallBridge(bridge_);
     }
 
-    function propose(uint256 id, IRollCallGovernor.Proposal memory p) external {
+    function propose(bytes32 id, IRollCallGovernor.Proposal memory p) external {
         proposals[id] = p;
         bridge.propose(id);
     }
 
-    function proposal(uint256 id)
+    function proposal(bytes32 id)
         public
         view
         virtual
@@ -60,7 +60,7 @@ contract RollCallGovernor {
         return s;
     }
 
-    function finalize(uint256 id, uint256[3] calldata votes) external virtual {}
+    function finalize(bytes32 id, uint256[3] calldata votes) external virtual {}
 }
 
 contract RollCallVoterSetup is DSTest {
@@ -101,7 +101,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
     function testCanPropose() public {
         uint64 ts = uint64(block.timestamp);
         governor.propose(
-            1,
+            bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
                 votesFor: 0,
@@ -143,7 +143,7 @@ contract RollCallVoter_State is RollCallVoterSetup {
         super.setUp();
 
         governor.propose(
-            1,
+            bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
                 votesFor: 0,
@@ -200,7 +200,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         blocknumber.setL1BlockNumber(block.number);
 
         governor.propose(
-            1,
+            bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
                 votesFor: 0,

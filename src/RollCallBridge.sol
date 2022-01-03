@@ -21,7 +21,7 @@ contract RollCallBridge is IRollCallBridge, Ownable {
         voter = voter_;
     }
 
-    function propose(uint256 id) external override {
+    function propose(bytes32 id) external override {
         IRollCallGovernor governor = IRollCallGovernor(msg.sender);
         IRollCallGovernor.Proposal memory proposal = governor.proposal(id);
 
@@ -41,7 +41,7 @@ contract RollCallBridge is IRollCallBridge, Ownable {
 
     function finalize(
         address governor,
-        uint256 id,
+        bytes32 id,
         uint256[3] calldata votes
     ) external override onlyVoter {
         IRollCallGovernor(governor).finalize(id, votes);

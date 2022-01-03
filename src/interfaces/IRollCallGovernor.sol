@@ -48,7 +48,7 @@ abstract contract IRollCallGovernor is IERC165 {
      * @dev Emitted when a proposal is created.
      */
     event ProposalCreated(
-        uint256 proposalId,
+        bytes32 id,
         address proposer,
         address[] targets,
         uint256[] values,
@@ -62,12 +62,12 @@ abstract contract IRollCallGovernor is IERC165 {
     /**
      * @dev Emitted when a proposal is canceled.
      */
-    event ProposalCanceled(uint256 proposalId);
+    event ProposalCanceled(bytes32 id);
 
     /**
      * @dev Emitted when a proposal is executed.
      */
-    event ProposalExecuted(uint256 proposalId);
+    event ProposalExecuted(bytes32 id);
 
     /**
      * @notice module:core
@@ -85,7 +85,7 @@ abstract contract IRollCallGovernor is IERC165 {
      * @notice module:core
      * @dev A governance proposal.
      */
-    function proposal(uint256 id) public view virtual returns (Proposal memory);
+    function proposal(bytes32 id) public view virtual returns (Proposal memory);
 
     /**
      * @notice module:core
@@ -106,38 +106,26 @@ abstract contract IRollCallGovernor is IERC165 {
         uint256[] calldata values,
         bytes[] calldata calldatas,
         bytes32 descriptionHash
-    ) public pure virtual returns (uint256);
+    ) public pure virtual returns (bytes32);
 
     /**
      * @notice module:core
      * @dev Current state of a proposal, following Compound's convention
      */
-    function state(uint256 proposalId)
-        public
-        view
-        virtual
-        returns (ProposalState);
+    function state(bytes32 id) public view virtual returns (ProposalState);
 
     /**
      * @notice module:core
      * @dev Block number the storage root was commited, which is used to retrieve user's votes and quorum.
      */
-    function proposalSnapshot(uint256 proposalId)
-        public
-        view
-        virtual
-        returns (uint256);
+    function proposalSnapshot(bytes32 id) public view virtual returns (uint256);
 
     /**
      * @notice module:core
      * @dev Block number at which votes close. Votes close at the end of this block, so it is possible to cast a vote
      * during this block.
      */
-    function proposalDeadline(uint256 proposalId)
-        public
-        view
-        virtual
-        returns (uint256);
+    function proposalDeadline(bytes32 id) public view virtual returns (uint256);
 
     /**
      * @notice module:user-config
@@ -166,9 +154,9 @@ abstract contract IRollCallGovernor is IERC165 {
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public virtual returns (uint256 proposalId);
+    ) public virtual returns (bytes32 id);
 
-    function finalize(uint256 id, uint256[3] calldata votes) external virtual;
+    function finalize(bytes32 id, uint256[3] calldata votes) external virtual;
 
     /**
      * @dev Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
@@ -183,5 +171,5 @@ abstract contract IRollCallGovernor is IERC165 {
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public payable virtual returns (uint256 proposalId);
+    ) public payable virtual returns (bytes32 id);
 }

@@ -27,7 +27,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     uint256 private _quorum;
     address[] private _sources;
     bytes32[] private _slots;
-    mapping(uint256 => Proposal) private _proposals;
+    mapping(bytes32 => Proposal) private _proposals;
     mapping(uint256 => uint256) private _quorums;
 
     /**
@@ -127,7 +127,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     /**
      * @dev See {IRollCallGovernor-proposal}.
      */
-    function proposal(uint256 id)
+    function proposal(bytes32 id)
         public
         view
         override
@@ -154,26 +154,22 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public pure virtual override returns (uint256) {
+    ) public pure virtual override returns (bytes32) {
         return
-            uint256(
-                keccak256(
-                    abi.encode(targets, values, calldatas, descriptionHash)
-                )
-            );
+            keccak256(abi.encode(targets, values, calldatas, descriptionHash));
     }
 
     /**
      * @dev See {IRollCallGovernor-state}.
      */
-    function state(uint256 proposalId)
+    function state(bytes32 id)
         public
         view
         virtual
         override
         returns (ProposalState)
     {
-        Proposal storage proposal_ = _proposals[proposalId];
+        Proposal storage proposal_ = _proposals[id];
 
         if (proposal_.executed) {
             return ProposalState.Executed;
@@ -193,13 +189,13 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
             return ProposalState.Pending;
         }
 
-        uint256 deadline = proposalDeadline(proposalId);
+        uint256 deadline = proposalDeadline(id);
 
         if (deadline >= block.number) {
             return ProposalState.Active;
         }
 
-        if (_quorumReached(proposalId) && _voteSucceeded(proposalId)) {
+        if (_quorumReached(id) && _voteSucceeded(id)) {
             return ProposalState.Succeeded;
         } else {
             return ProposalState.Defeated;
@@ -209,33 +205,33 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     /**
      * @dev See {IRollCallGovernor-proposalSnapshot}.
      */
-    function proposalSnapshot(uint256 proposalId)
+    function proposalSnapshot(bytes32 id)
         public
         view
         virtual
         override
         returns (uint256)
     {
-        return _proposals[proposalId].snapshot;
+        return _proposals[id].snapshot;
     }
 
     /**
      * @dev See {IRollCallGovernor-proposalDeadline}.
      */
-    function proposalDeadline(uint256 proposalId)
+    function proposalDeadline(bytes32 id)
         public
         view
         virtual
         override
         returns (uint256)
     {
-        return _proposals[proposalId].end;
+        return _proposals[id].end;
     }
 
     /**
      * @dev Amount of votes already cast passes the threshold limit.
      */
-    function _quorumReached(uint256 proposalId) internal view returns (bool) {
+    function _quorumReached(bytes32 id) internal view returns (bool) {
         // TODO: Implement
         return true;
     }
@@ -243,7 +239,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     /**
      * @dev Is the proposal successful or not.
      */
-    function _voteSucceeded(uint256 id) internal view returns (bool) {
+    function _voteSucceeded(bytes32 id) internal view returns (bool) {
         return _proposals[id].votesFor > _proposals[id].votesAgainst;
     }
 
@@ -256,8 +252,8 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public virtual override returns (uint256) {
-        uint256 proposalId = hashProposal(
+    ) public virtual override returns (bytes32) {
+        bytes32 id = hashProposal(
             targets,
             values,
             calldatas,
@@ -274,7 +270,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         );
         require(targets.length > 0, "governor: empty proposal");
 
-        Proposal storage proposal_ = _proposals[proposalId];
+        Proposal storage proposal_ = _proposals[id];
         require(proposal_.start == 0, "governor: proposal already exists");
 
         uint64 start = uint64(block.number);
@@ -291,10 +287,10 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         proposal_.start = start;
         proposal_.end = deadline;
 
-        _bridge.propose(proposalId);
+        _bridge.propose(id);
 
         emit ProposalCreated(
-            proposalId,
+            id,
             msg.sender,
             targets,
             values,
@@ -305,11 +301,11 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
             description
         );
 
-        return proposalId;
+        return id;
     }
 
     // TODO: Only bridge
-    function finalize(uint256 id, uint256[3] memory votes) external override {
+    function finalize(bytes32 id, uint256[3] memory votes) external override {
         _proposals[id].votesAgainst.add(votes[0]);
         _proposals[id].votesFor.add(votes[1]);
         _proposals[id].votesAbstain.add(votes[2]);
@@ -323,8 +319,8 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public payable virtual override returns (uint256) {
-        uint256 id = hashProposal(targets, values, calldatas, descriptionHash);
+    ) public payable virtual override returns (bytes32) {
+        bytes32 id = hashProposal(targets, values, calldatas, descriptionHash);
 
         ProposalState status = state(id);
         require(
@@ -353,14 +349,9 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal virtual returns (uint256) {
-        uint256 proposalId = hashProposal(
-            targets,
-            values,
-            calldatas,
-            descriptionHash
-        );
-        ProposalState status = state(proposalId);
+    ) internal virtual returns (bytes32) {
+        bytes32 id = hashProposal(targets, values, calldatas, descriptionHash);
+        ProposalState status = state(id);
 
         require(
             status != ProposalState.Canceled &&
@@ -368,11 +359,11 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
                 status != ProposalState.Executed,
             "governor: proposal not active"
         );
-        _proposals[proposalId].canceled = true;
+        _proposals[id].canceled = true;
 
-        emit ProposalCanceled(proposalId);
+        emit ProposalCanceled(id);
 
-        return proposalId;
+        return id;
     }
 
     /**

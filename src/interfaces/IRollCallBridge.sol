@@ -7,11 +7,11 @@ pragma solidity 0.6.12;
  * @dev Interface of the {RollCallBridge} core.
  */
 abstract contract IRollCallBridge {
-    function propose(uint256 id) external virtual;
+    function propose(bytes32 id) external virtual;
 
     function finalize(
         address governor,
-        uint256 id,
+        bytes32 id,
         uint256[3] calldata votes
     ) external virtual;
 }
