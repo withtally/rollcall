@@ -34,6 +34,7 @@ type StorageResult struct {
 var slot = flag.Int64("slot", 0, "storage slot for proof")
 var contract = flag.String("contract", "", "contract address for proof")
 var voter = flag.String("voter", "", "voter address for proof")
+var height = flag.Int64("height", 13934596, "block height")
 
 func main() {
 	flag.Parse()
@@ -56,9 +57,9 @@ func main() {
 
 	keys := []string{key.Hex()}
 
-	height := big.NewInt(13843553)
+	blockHeight := big.NewInt(*height)
 
-	block, err := ethClient.BlockByNumber(ctx, height)
+	block, err := ethClient.BlockByNumber(ctx, blockHeight)
 	if err != nil {
 		log.Fatalf("getting block: %+v", err)
 	}
@@ -69,7 +70,7 @@ func main() {
 		"eth_getProof",
 		common.HexToAddress(*contract),
 		keys,
-		hexutil.EncodeBig(height),
+		hexutil.EncodeBig(blockHeight),
 	); err != nil {
 		log.Fatalf("getting storage proof: %+v", err)
 	}
@@ -77,7 +78,9 @@ func main() {
 	resp.StateRoot = block.Root()
 	resp.Height = block.Header().Number
 
-	println("Value:\n", new(big.Int).SetBytes(common.Hex2Bytes(resp.StorageProof[0].Value)).String())
+	println("Root:\n", resp.StorageHash.Hex())
+
+	println("Value:\n", resp.StorageProof[0].Value)
 
 	var target [][][]byte
 	for _, p := range resp.StorageProof[0].Proof {
