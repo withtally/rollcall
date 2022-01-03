@@ -31,6 +31,14 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     mapping(uint256 => uint256) private _quorums;
 
     /**
+     * @dev Restrict access to bridge implementation address.
+     */
+    modifier onlyBridge() {
+        require(msg.sender == address(_bridge), "governor: not bridge");
+        _;
+    }
+
+    /**
      * @dev Restrict access to governor executing address. Some module might override the _executor function to make
      * sure this modifier is consistant with the execution model.
      */
@@ -304,8 +312,11 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         return id;
     }
 
-    // TODO: Only bridge
-    function finalize(bytes32 id, uint256[3] memory votes) external override {
+    function finalize(bytes32 id, uint256[3] memory votes)
+        external
+        override
+        onlyBridge
+    {
         _proposals[id].votesAgainst.add(votes[0]);
         _proposals[id].votesFor.add(votes[1]);
         _proposals[id].votesAbstain.add(votes[2]);

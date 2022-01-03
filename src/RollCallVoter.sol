@@ -237,8 +237,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet,
-     * and call the {_countVote} internal function.
+     * @dev Internal vote casting mechanism: Check that the vote is pending and that it has not been cast yet.
      *
      * Emits a {IRollCallVoter-VoteCast} event.
      */

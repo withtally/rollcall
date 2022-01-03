@@ -1,3 +1,0 @@
-openzeppelin-contracts/=/Users/tarrence/code/rollcall/lib/openzeppelin-contracts/contracts/
-ds-test/=/Users/tarrence/code/rollcall/lib/ds-test/src/
-curve-merkle-oracle/=/Users/tarrence/code/rollcall/lib/curve-merkle-oracle/contracts/

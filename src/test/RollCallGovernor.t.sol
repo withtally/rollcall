@@ -72,7 +72,7 @@ contract RollCallGovernorSetup is DSTest {
 contract RollCallGovernor_Constructor is DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
-    function testFailCannotConstructWithSourcesSlotsLengthMismatch() public {
+    function testCannotConstructWithSourcesSlotsLengthMismatch() public {
         address[] memory sources = new address[](1);
         sources[0] = address(0);
         bytes32[] memory slots = new bytes32[](0);

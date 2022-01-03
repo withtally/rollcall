@@ -77,6 +77,8 @@ func main() {
 	resp.StateRoot = block.Root()
 	resp.Height = block.Header().Number
 
+	println("Value:\n", new(big.Int).SetBytes(common.Hex2Bytes(resp.StorageProof[0].Value)).String())
+
 	var target [][][]byte
 	for _, p := range resp.StorageProof[0].Proof {
 		bz, err := hexutil.Decode(p)
