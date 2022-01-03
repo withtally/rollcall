@@ -15,25 +15,20 @@ import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
 
 import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
 
-interface Token {
-    /**
-     * @dev Returns the amount of tokens owned by `account`.
-     */
-    function balanceOf(address account) external view returns (uint256);
-}
-
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
  */
-contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
+abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     using SafeMath for uint256;
 
     string private _name;
     IRollCallBridge private _bridge;
 
+    uint256 private _quorum;
     address[] private _sources;
     bytes32[] private _slots;
     mapping(uint256 => Proposal) private _proposals;
+    mapping(uint256 => uint256) private _quorums;
 
     /**
      * @dev Restrict access to governor executing address. Some module might override the _executor function to make
@@ -64,13 +59,6 @@ contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
             _sources[i] = sources_[i];
             _slots[i] = slots_[i];
         }
-    }
-
-    /**
-     * @dev Function to receive ETH that will be handled by the governor (disabled if executor is a third party contract)
-     */
-    receive() external payable virtual {
-        require(_executor() == address(this));
     }
 
     /**
@@ -115,6 +103,26 @@ contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     function slots() external view override returns (bytes32[] memory) {
         return _slots;
     }
+
+    /**
+     * @notice module:user-config
+     * @dev Minimum number of cast voted required for a proposal to be successful.
+     *
+     * Note: The `blockNumber` parameter corresponds to the snaphot used for counting vote. This allows to scale the
+     * quroum depending on values such as the totalSupply of a token at this block (see {ERC20Votes}).
+     */
+    function quorum(uint256 blockNumber)
+        public
+        view
+        virtual
+        override
+        returns (uint256);
+
+    /**
+     * @notice module:user-config
+     * @dev Delay, in number of blocks, between the vote start and vote ends.
+     */
+    function votingPeriod() public view virtual override returns (uint256);
 
     /**
      * @dev See {IRollCallGovernor-proposal}.
@@ -225,37 +233,6 @@ contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev Part of the Governor Bravo's interface: _"The number of votes required in order for a voter to become a proposer"_.
-     */
-    function proposalThreshold() public pure virtual returns (uint256) {
-        return 0;
-    }
-
-    /**
-     * @notice module:user-config
-     * @dev Minimum number of cast voted required for a proposal to be successful.
-     *
-     * Note: The `blockNumber` parameter corresponds to the snaphot used for counting vote. This allows to scale the
-     * quroum depending on values such as the totalSupply of a token at this block (see {ERC20Votes}).
-     */
-    function quorum(uint256 blockNumber)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return 0;
-    }
-
-    /**
-     * @notice module:user-config
-     * @dev Delay, in number of blocks, between the vote start and vote ends.
-     */
-    function votingPeriod() public view override returns (uint256) {
-        return 0;
-    }
-
-    /**
      * @dev Amount of votes already cast passes the threshold limit.
      */
     function _quorumReached(uint256 proposalId) internal view returns (bool) {
@@ -280,13 +257,6 @@ contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         bytes[] memory calldatas,
         string memory description
     ) public virtual override returns (uint256) {
-        // NOTE: Currently we are assuming the source balance is a token balance,
-        // and we are always using the first defined source.
-        require(
-            Token(_sources[0]).balanceOf(msg.sender) >= proposalThreshold(),
-            "governor: proposer votes below proposal threshold"
-        );
-
         uint256 proposalId = hashProposal(
             targets,
             values,
