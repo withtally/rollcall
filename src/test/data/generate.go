@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -29,7 +31,12 @@ type StorageResult struct {
 	Proof []string `json:"proof"`
 }
 
+var slot = flag.Int64("slot", 0, "storage slot for proof")
+var contract = flag.String("contract", "", "contract address for proof")
+var voter = flag.String("voter", "", "voter address for proof")
+
 func main() {
+	flag.Parse()
 	ctx := context.Background()
 
 	ethRPC, err := rpc.Dial("https://eth-mainnet.alchemyapi.io/v2/MdZcimFJ2yz2z6pw21UYL-KNA0zmgX-F")
@@ -39,8 +46,16 @@ func main() {
 
 	ethClient := ethclient.NewClient(ethRPC)
 
-	contract := "0x7ae1d57b58fa6411f32948314badd83583ee0e8c"
-	keys := []string{"0x9f9913eb00db1630cca84a7a1706a631e771278c4f0ef0d2bdce02e5911598b6"}
+	address := common.HexToAddress(*voter)
+	key := crypto.Keccak256Hash(
+		common.LeftPadBytes(address[:], 32),
+		common.LeftPadBytes(big.NewInt(*slot).Bytes(), 32),
+	)
+
+	println("Storage Key:\n", key.Hex())
+
+	keys := []string{key.Hex()}
+
 	height := big.NewInt(13843553)
 
 	block, err := ethClient.BlockByNumber(ctx, height)
@@ -52,7 +67,7 @@ func main() {
 	if err := ethRPC.Call(
 		&resp,
 		"eth_getProof",
-		contract,
+		common.HexToAddress(*contract),
 		keys,
 		hexutil.EncodeBig(height),
 	); err != nil {
@@ -81,5 +96,5 @@ func main() {
 	}
 
 	hex := hexutil.Encode(encoded)
-	println(hex)
+	println("Proof:\n", hex)
 }
