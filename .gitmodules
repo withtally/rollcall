@@ -1,15 +1,6 @@
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts@fa64a1ced0b70ab89073d5d0b6e01b0778f7e7d6
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "lib/curve-merkle-oracle"]
-	path = lib/curve-merkle-oracle
-	url = https://github.com/lidofinance/curve-merkle-oracle
-[submodule "lib/Solidity-RLP"]
-	path = lib/Solidity-RLP
-	url = https://github.com/hamdiallam/Solidity-RLP
-[submodule "lib/optimism"]
-	path = lib/optimism
-	url = https://github.com/ethereum-optimism/optimism
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts

@@ -1,19 +1,29 @@
 name: tests
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
 jobs:
   tests:
     runs-on: ubuntu-latest
-
+    env:
+      FOUNDRY_VERSION: c8d31edd9fbb9902aaac4dcaa2278808d2879b72
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-${{ env.FOUNDRY_VERSION }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
       - uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --git https://github.com/gakonst/foundry --bin forge --locked
-      - run: forge install
+          args: --git https://github.com/gakonst/foundry --bin forge --rev ${{env.FOUNDRY_VERSION}} --locked
+      - run: forge update
       - run: forge test --force --verbosity 5
