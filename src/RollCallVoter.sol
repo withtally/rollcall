@@ -180,13 +180,13 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function castVote(
         uint256 id,
-        address token,
+        address source,
         address governor,
         bytes memory proofRlp,
         uint8 support
     ) public virtual override returns (uint256) {
         return
-            _castVote(id, token, governor, msg.sender, proofRlp, support, "");
+            _castVote(id, source, governor, msg.sender, proofRlp, support, "");
     }
 
     /**
@@ -194,7 +194,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function castVoteWithReason(
         uint256 id,
-        address token,
+        address source,
         address governor,
         bytes memory proofRlp,
         uint8 support,
@@ -203,7 +203,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         return
             _castVote(
                 id,
-                token,
+                source,
                 governor,
                 msg.sender,
                 proofRlp,
@@ -217,7 +217,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function castVoteBySig(
         uint256 id,
-        address token,
+        address source,
         address governor,
         bytes memory proofRlp,
         uint8 support,
@@ -233,7 +233,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
             r,
             s
         );
-        return _castVote(id, token, governor, voter, proofRlp, support, "");
+        return _castVote(id, source, governor, voter, proofRlp, support, "");
     }
 
     /**
@@ -244,9 +244,9 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      */
     function _castVote(
         uint256 id,
-        address token,
+        address source,
         address governor,
-        address account,
+        address voter,
         bytes memory proofRlp,
         uint8 support,
         string memory reason
@@ -257,24 +257,33 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
             "rollcall: vote not currently active"
         );
         require(
-            !proposals[governor][id].voted[account],
+            !proposals[governor][id].voted[voter],
             "rollcall: already voted"
         );
 
         RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
 
         Verifier.SlotValue memory balance = Verifier.extractSlotValueFromProof(
-            keccak256(abi.encodePacked(proposal.slots[token])),
+            keccak256(
+                abi.encodePacked(
+                    keccak256(
+                        abi.encodePacked(
+                            bytes32(uint256(uint160(voter))),
+                            proposal.slots[source]
+                        )
+                    )
+                )
+            ),
             proposal.root,
             proofs
         );
 
         require(balance.exists, "voter: balance doesnt exist");
 
-        proposals[governor][id].voted[account] = true;
+        proposals[governor][id].voted[voter] = true;
         votes[governor][id][support].add(balance.value);
 
-        emit VoteCast(account, id, support, balance.value, reason);
+        emit VoteCast(voter, id, support, balance.value, reason);
 
         return balance.value;
     }
