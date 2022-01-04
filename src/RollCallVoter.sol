@@ -262,6 +262,14 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
         RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
 
+        Verifier.Account memory account = Verifier.extractAccountFromProof(
+            keccak256(abi.encodePacked(source)),
+            proposal.root,
+            proofs[0].toList()
+        );
+
+        require(account.exists, "rollcall: account doesnt exist");
+
         Verifier.SlotValue memory balance = Verifier.extractSlotValueFromProof(
             keccak256(
                 abi.encodePacked(
@@ -273,8 +281,8 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
                     )
                 )
             ),
-            proposal.root,
-            proofs
+            account.storageRoot,
+            proofs[1].toList()
         );
 
         require(balance.exists, "voter: balance doesnt exist");

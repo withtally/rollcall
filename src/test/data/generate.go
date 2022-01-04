@@ -17,6 +17,7 @@ import (
 type StorageProof struct {
 	Height       *big.Int        `json:"height"`
 	Address      common.Address  `json:"address"`
+	AccountProof []string        `json:"accountProof"`
 	Balance      *hexutil.Big    `json:"balance"`
 	CodeHash     common.Hash     `json:"codeHash"`
 	Nonce        hexutil.Uint64  `json:"nonce"`
@@ -78,11 +79,25 @@ func main() {
 	resp.StateRoot = block.Root()
 	resp.Height = block.Header().Number
 
-	println("Root:\n", resp.StorageHash.Hex())
+	println("State Root:\n", resp.StateRoot.Hex())
 
-	println("Value:\n", resp.StorageProof[0].Value)
+	println("Storage Hash:\n", resp.StorageHash.Hex())
 
-	var target [][][]byte
+	println("Slot Value:\n", resp.StorageProof[0].Value)
+
+	target := make([][][][]byte, 2)
+	for _, p := range resp.AccountProof {
+		bz, err := hexutil.Decode(p)
+		if err != nil {
+			log.Fatalf("decoding node hex: %+v", err)
+		}
+		var val [][]byte
+		if err := rlp.DecodeBytes(bz, &val); err != nil {
+			log.Fatalf("decoding node rlp: %+v", err)
+		}
+		target[0] = append(target[0], val)
+	}
+
 	for _, p := range resp.StorageProof[0].Proof {
 		bz, err := hexutil.Decode(p)
 		if err != nil {
@@ -92,7 +107,7 @@ func main() {
 		if err := rlp.DecodeBytes(bz, &val); err != nil {
 			log.Fatalf("decoding node rlp: %+v", err)
 		}
-		target = append(target, val)
+		target[1] = append(target[1], val)
 	}
 
 	encoded, err := rlp.EncodeToBytes(target)
@@ -101,5 +116,5 @@ func main() {
 	}
 
 	hex := hexutil.Encode(encoded)
-	println("Proof:\n", hex)
+	println("Storage Proof:\n", hex)
 }
