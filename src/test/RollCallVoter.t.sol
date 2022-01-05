@@ -25,7 +25,7 @@ contract GovernanceERC20 is ERC20 {
 
 contract RollCallGovernor {
     bytes32 public queueId;
-    uint256[3] public queueVotes;
+    uint256[10] public queueVotes;
 
     RollCallBridge internal bridge;
 
@@ -61,7 +61,7 @@ contract RollCallGovernor {
         return s;
     }
 
-    function queue(bytes32 id, uint256[3] calldata votes) external virtual {
+    function queue(bytes32 id, uint256[10] calldata votes) external virtual {
         queueId = id;
         queueVotes = votes;
     }
@@ -132,9 +132,6 @@ contract RollCallVoterProposing is RollCallVoterSetup {
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
-                votesFor: 0,
-                votesAgainst: 0,
-                votesAbstain: 0,
                 root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: ts,
                 end: ts + 100,
@@ -175,9 +172,6 @@ contract RollCallVoter_State is RollCallVoterSetup {
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
-                votesFor: 0,
-                votesAgainst: 0,
-                votesAbstain: 0,
                 root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
@@ -233,9 +227,6 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
-                votesFor: 0,
-                votesAgainst: 0,
-                votesAbstain: 0,
                 root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
@@ -309,9 +300,6 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
             id,
             IRollCallGovernor.Proposal({
                 snapshot: block.number,
-                votesFor: 0,
-                votesAgainst: 0,
-                votesAbstain: 0,
                 root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
@@ -420,12 +408,26 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         voter.queue(address(governor), id, 19e5);
         assertEq(governor.queueId(), id, "queue id mismatch");
 
-        uint256[3] memory expect = [uint256(0), balance, 0];
-        uint256[3] memory actual = voter.votes(address(governor), id);
+        uint256[10] memory expect = [
+            uint256(0),
+            balance,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ];
+        uint256[10] memory actual = voter.votes(address(governor), id);
 
         for (uint256 i = 0; i < expect.length; i++) {
             assertEq(actual[i], expect[i], "votes mismatch");
             assertEq(governor.queueVotes(i), expect[i], "votes mismatch");
         }
+
+        vm.expectRevert("voter: not ready");
+        voter.queue(address(governor), id, 19e5);
     }
 }

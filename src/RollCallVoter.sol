@@ -43,7 +43,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     address private _bridge;
 
     mapping(address => mapping(bytes32 => Proposal)) private _proposals;
-    mapping(address => mapping(bytes32 => uint256[3])) private _votes;
+    mapping(address => mapping(bytes32 => uint256[10])) private _votes;
     mapping(address => mapping(bytes32 => mapping(address => bool)))
         private _voted;
     mapping(address => mapping(bytes32 => mapping(address => bytes32)))
@@ -125,7 +125,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         view
         virtual
         override
-        returns (uint256[3] memory)
+        returns (uint256[10] memory)
     {
         return _votes[governor][id];
     }
@@ -149,10 +149,10 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         uint64 start,
         uint64 end
     ) external override onlyBridge {
-        Proposal storage proposal = _proposals[governor][id];
-        proposal.root = root;
-        proposal.start = start;
-        proposal.end = end;
+        Proposal storage p = _proposals[governor][id];
+        p.root = root;
+        p.start = start;
+        p.end = end;
 
         for (uint256 i = 0; i < slots.length; i++) {
             _slots[governor][id][sources[i]] = slots[i];
@@ -265,7 +265,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         uint8 support,
         string memory reason
     ) internal virtual returns (uint256) {
-        Proposal storage proposal = _proposals[governor][id];
+        Proposal storage p = _proposals[governor][id];
         require(
             state(governor, id) == ProposalState.Active,
             "rollcall: vote not currently active"
@@ -276,7 +276,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
         Verifier.Account memory account = Verifier.extractAccountFromProof(
             keccak256(abi.encodePacked(source)),
-            proposal.root,
+            p.root,
             proofs[0].toList()
         );
 

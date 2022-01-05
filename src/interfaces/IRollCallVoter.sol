@@ -91,7 +91,7 @@ abstract contract IRollCallVoter is IERC165 {
         public
         view
         virtual
-        returns (uint256[3] memory);
+        returns (uint256[10] memory);
 
     /**
      * @notice module:voter

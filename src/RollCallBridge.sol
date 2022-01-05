@@ -42,7 +42,7 @@ contract RollCallBridge is IRollCallBridge, Ownable {
     function queue(
         address governor,
         bytes32 id,
-        uint256[3] calldata votes
+        uint256[10] calldata votes
     ) external override onlyVoter {
         IRollCallGovernor(governor).queue(id, votes);
     }

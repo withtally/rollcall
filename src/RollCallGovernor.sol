@@ -17,6 +17,7 @@ import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
+ * - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
  */
 abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     using SafeMath for uint256;
@@ -28,7 +29,6 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     address[] private _sources;
     bytes32[] private _slots;
     mapping(bytes32 => Proposal) private _proposals;
-    mapping(uint256 => uint256) private _quorums;
 
     /**
      * @dev Restrict access to bridge implementation address.
@@ -145,7 +145,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev See {IRollCallGovernor-hashProposal}.
+     * @dev See {IRollCallGovernor-hash}.
      *
      * The proposal id is produced by hashing the RLC encoded `targets` array, the `values` array, the `calldatas` array
      * and the descriptionHash (bytes32 which itself is the keccak256 hash of the description string). This proposal id
@@ -157,7 +157,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
      * accross multiple networks. This also means that in order to execute the same operation twice (on the same
      * governor) the proposer will have to change the description in order to avoid proposal id conflicts.
      */
-    function hashProposal(
+    function hash(
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
@@ -239,17 +239,17 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     /**
      * @dev Amount of votes already cast passes the threshold limit.
      */
-    function _quorumReached(bytes32 id) internal view returns (bool) {
-        // TODO: Implement
-        return true;
-    }
+    function _quorumReached(bytes32 id) internal view virtual returns (bool);
 
     /**
      * @dev Is the proposal successful or not.
      */
-    function _voteSucceeded(bytes32 id) internal view returns (bool) {
-        return _proposals[id].votesFor > _proposals[id].votesAgainst;
-    }
+    function _voteSucceeded(bytes32 id) internal view virtual returns (bool);
+
+    /**
+     * @dev Count a proposals votes.
+     */
+    function _countVote(bytes32 id, uint256[10] memory votes) internal virtual;
 
     /**
      * @dev See {IRollCallGovernor-propose}.
@@ -261,7 +261,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         bytes[] memory calldatas,
         string memory description
     ) public virtual override returns (bytes32) {
-        bytes32 id = hashProposal(
+        bytes32 id = hash(
             targets,
             values,
             calldatas,
@@ -312,14 +312,12 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         return id;
     }
 
-    function queue(bytes32 id, uint256[3] memory votes)
+    function queue(bytes32 id, uint256[10] memory votes)
         external
         override
         onlyBridge
     {
-        _proposals[id].votesAgainst = _proposals[id].votesAgainst.add(votes[0]);
-        _proposals[id].votesFor = _proposals[id].votesFor.add(votes[1]);
-        _proposals[id].votesAbstain = _proposals[id].votesAbstain.add(votes[2]);
+        _countVote(id, votes);
     }
 
     /**
@@ -331,7 +329,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         bytes[] memory calldatas,
         bytes32 descriptionHash
     ) public payable virtual override returns (bytes32) {
-        bytes32 id = hashProposal(targets, values, calldatas, descriptionHash);
+        bytes32 id = hash(targets, values, calldatas, descriptionHash);
 
         ProposalState status = state(id);
         require(
@@ -361,7 +359,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         bytes[] memory calldatas,
         bytes32 descriptionHash
     ) internal virtual returns (bytes32) {
-        bytes32 id = hashProposal(targets, values, calldatas, descriptionHash);
+        bytes32 id = hash(targets, values, calldatas, descriptionHash);
         ProposalState status = state(id);
 
         require(

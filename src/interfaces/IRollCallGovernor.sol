@@ -12,20 +12,8 @@ import "openzeppelin-contracts/introspection/ERC165.sol";
  * _Available since v4.3._
  */
 abstract contract IRollCallGovernor is IERC165 {
-    /**
-     * @dev Supported vote types.
-     */
-    enum VoteType {
-        Against,
-        For,
-        Abstain
-    }
-
     struct Proposal {
         uint256 snapshot;
-        uint256 votesFor;
-        uint256 votesAgainst;
-        uint256 votesAbstain;
         bytes32 root;
         uint64 start;
         uint64 end;
@@ -101,7 +89,7 @@ abstract contract IRollCallGovernor is IERC165 {
      * @notice module:core
      * @dev Hashing function used to (re)build the proposal id from the proposal details..
      */
-    function hashProposal(
+    function hash(
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata calldatas,
@@ -156,7 +144,7 @@ abstract contract IRollCallGovernor is IERC165 {
         string memory description
     ) public virtual returns (bytes32 id);
 
-    function queue(bytes32 id, uint256[3] calldata votes) external virtual;
+    function queue(bytes32 id, uint256[10] calldata votes) external virtual;
 
     /**
      * @dev Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
