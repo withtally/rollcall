@@ -312,7 +312,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         return id;
     }
 
-    function finalize(bytes32 id, uint256[3] memory votes)
+    function queue(bytes32 id, uint256[3] memory votes)
         external
         override
         onlyBridge

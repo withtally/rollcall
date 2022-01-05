@@ -9,7 +9,7 @@ pragma solidity 0.6.12;
 abstract contract IRollCallBridge {
     function propose(bytes32 id) external virtual;
 
-    function finalize(
+    function queue(
         address governor,
         bytes32 id,
         uint256[3] calldata votes

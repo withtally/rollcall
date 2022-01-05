@@ -39,12 +39,12 @@ contract RollCallBridge is IRollCallBridge, Ownable {
         _cdm.sendMessage(voter, message, 1900000); // 1900000 gas is given for free
     }
 
-    function finalize(
+    function queue(
         address governor,
         bytes32 id,
         uint256[3] calldata votes
     ) external override onlyVoter {
-        IRollCallGovernor(governor).finalize(id, votes);
+        IRollCallGovernor(governor).queue(id, votes);
     }
 
     /**

@@ -58,7 +58,7 @@ contract RollCallGovernor {
         return s;
     }
 
-    function finalize(bytes32 id, uint256[3] calldata votes) external virtual {}
+    function queue(bytes32 id, uint256[3] calldata votes) external virtual {}
 }
 
 contract RollCallVoterTester is RollCallVoter {
@@ -201,10 +201,10 @@ contract RollCallVoter_State is RollCallVoterSetup {
             uint256(IRollCallVoter.ProposalState.Ended)
         );
 
-        voter.finalize(address(governor), id, 1e6);
+        voter.queue(address(governor), id, 1e6);
         assertEq(
             uint256(voter.state(address(governor), id)),
-            uint256(IRollCallVoter.ProposalState.Finalized)
+            uint256(IRollCallVoter.ProposalState.Queued)
         );
 
         vm.expectRevert("rollcall: proposal vote doesnt exist");

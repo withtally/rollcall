@@ -42,7 +42,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         bytes32 root;
         uint64 start;
         uint64 end;
-        bool finalized;
+        bool queue;
         mapping(address => bool) voted;
         mapping(address => bytes32) slots;
     }
@@ -110,8 +110,8 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
         require(proposal.start != 0, "rollcall: proposal vote doesnt exist");
 
-        if (proposal.finalized) {
-            return ProposalState.Finalized;
+        if (proposal.queue) {
+            return ProposalState.Queued;
         }
 
         if (proposal.start > blocknumber()) {
@@ -144,17 +144,17 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         }
     }
 
-    function finalize(
+    function queue(
         address governor,
         bytes32 id,
         uint32 gaslimit
     ) external override {
         require(state(governor, id) == ProposalState.Ended, "voter: not ready");
 
-        proposals[governor][id].finalized = true;
+        proposals[governor][id].queue = true;
 
         bytes memory message = abi.encodeWithSelector(
-            IRollCallBridge.finalize.selector,
+            IRollCallBridge.queue.selector,
             governor,
             id,
             votes[governor][id]
