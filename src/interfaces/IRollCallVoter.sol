@@ -21,6 +21,13 @@ abstract contract IRollCallVoter is IERC165 {
         Queued
     }
 
+    struct Proposal {
+        bytes32 root;
+        uint64 start;
+        uint64 end;
+        bool queue;
+    }
+
     /**
      * @dev Emitted when a vote is cast.
      *
@@ -35,13 +42,13 @@ abstract contract IRollCallVoter is IERC165 {
     );
 
     /**
-     * @notice module:core
+     * @notice module:voter
      * @dev Name of the governor instance (used in building the ERC712 domain separator).
      */
     function name() public view virtual returns (string memory);
 
     /**
-     * @notice module:core
+     * @notice module:voter
      * @dev Version of the governor instance (used in building the ERC712 domain separator). Default: "1"
      */
     function version() public view virtual returns (string memory);
@@ -56,6 +63,10 @@ abstract contract IRollCallVoter is IERC165 {
         uint64 end
     ) external virtual;
 
+    /**
+     * @notice module:voter
+     * @dev Queue an ended proposal for bridging to mainnet.
+     */
     function queue(
         address governor,
         bytes32 id,
@@ -63,7 +74,7 @@ abstract contract IRollCallVoter is IERC165 {
     ) external virtual;
 
     /**
-     * @notice module:core
+     * @notice module:voter
      * @dev Current state of a proposal vote
      */
     function state(address governor, bytes32 id)
@@ -73,7 +84,27 @@ abstract contract IRollCallVoter is IERC165 {
         returns (ProposalState);
 
     /**
-     * @notice module:voting
+     * @notice module:voter
+     * @dev Current votes for a proposal
+     */
+    function votes(address governor, bytes32 id)
+        public
+        view
+        virtual
+        returns (uint256[3] memory);
+
+    /**
+     * @notice module:voter
+     * @dev Current votes for a proposal
+     */
+    function proposal(address governor, bytes32 id)
+        public
+        view
+        virtual
+        returns (Proposal memory);
+
+    /**
+     * @notice module:voter
      * @dev Returns weither `account` has cast a vote on `id` for a partciular governor.
      */
     function hasVoted(

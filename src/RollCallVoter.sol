@@ -38,21 +38,16 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     bytes32 public constant BALLOT_TYPEHASH =
         keccak256("Ballot(bytes32 id,uint8 support)");
 
-    struct Proposal {
-        bytes32 root;
-        uint64 start;
-        uint64 end;
-        bool queue;
-        mapping(address => bool) voted;
-        mapping(address => bytes32) slots;
-    }
-
     string private _name;
     iOVM_CrossDomainMessenger private immutable _cdm;
     address private _bridge;
 
-    mapping(address => mapping(bytes32 => Proposal)) public proposals;
-    mapping(address => mapping(bytes32 => uint256[3])) public votes;
+    mapping(address => mapping(bytes32 => Proposal)) private _proposals;
+    mapping(address => mapping(bytes32 => uint256[3])) private _votes;
+    mapping(address => mapping(bytes32 => mapping(address => bool)))
+        private _voted;
+    mapping(address => mapping(bytes32 => mapping(address => bytes32)))
+        private _slots;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -106,7 +101,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         override
         returns (ProposalState)
     {
-        Proposal storage proposal = proposals[governor][id];
+        Proposal storage proposal = _proposals[governor][id];
 
         require(proposal.start != 0, "rollcall: proposal vote doesnt exist");
 
@@ -125,6 +120,26 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         return ProposalState.Ended;
     }
 
+    function votes(address governor, bytes32 id)
+        public
+        view
+        virtual
+        override
+        returns (uint256[3] memory)
+    {
+        return _votes[governor][id];
+    }
+
+    function proposal(address governor, bytes32 id)
+        public
+        view
+        virtual
+        override
+        returns (Proposal memory)
+    {
+        return _proposals[governor][id];
+    }
+
     function propose(
         address governor,
         bytes32 id,
@@ -134,13 +149,13 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         uint64 start,
         uint64 end
     ) external override onlyBridge {
-        Proposal storage proposal = proposals[governor][id];
+        Proposal storage proposal = _proposals[governor][id];
         proposal.root = root;
         proposal.start = start;
         proposal.end = end;
 
         for (uint256 i = 0; i < slots.length; i++) {
-            proposal.slots[sources[i]] = slots[i];
+            _slots[governor][id][sources[i]] = slots[i];
         }
     }
 
@@ -151,13 +166,13 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     ) external override {
         require(state(governor, id) == ProposalState.Ended, "voter: not ready");
 
-        proposals[governor][id].queue = true;
+        _proposals[governor][id].queue = true;
 
         bytes memory message = abi.encodeWithSelector(
             IRollCallBridge.queue.selector,
             governor,
             id,
-            votes[governor][id]
+            _votes[governor][id]
         );
 
         _cdm.sendMessage(_bridge, message, gaslimit);
@@ -172,7 +187,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         bytes32 id,
         address account
     ) public view override returns (bool) {
-        return proposals[governor][id].voted[account];
+        return _voted[governor][id][account];
     }
 
     /**
@@ -250,15 +265,12 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         uint8 support,
         string memory reason
     ) internal virtual returns (uint256) {
-        Proposal storage proposal = proposals[governor][id];
+        Proposal storage proposal = _proposals[governor][id];
         require(
             state(governor, id) == ProposalState.Active,
             "rollcall: vote not currently active"
         );
-        require(
-            !proposals[governor][id].voted[voter],
-            "rollcall: already voted"
-        );
+        require(!_voted[governor][id][voter], "rollcall: already voted");
 
         RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
 
@@ -276,7 +288,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
                     keccak256(
                         abi.encodePacked(
                             bytes32(uint256(uint160(voter))),
-                            proposal.slots[source]
+                            _slots[governor][id][source]
                         )
                     )
                 )
@@ -287,8 +299,10 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
         require(balance.exists, "voter: balance doesnt exist");
 
-        proposals[governor][id].voted[voter] = true;
-        votes[governor][id][support].add(balance.value);
+        _voted[governor][id][voter] = true;
+        _votes[governor][id][support] = _votes[governor][id][support].add(
+            balance.value
+        );
 
         emit VoteCast(voter, id, support, balance.value, reason);
 

@@ -317,9 +317,9 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         override
         onlyBridge
     {
-        _proposals[id].votesAgainst.add(votes[0]);
-        _proposals[id].votesFor.add(votes[1]);
-        _proposals[id].votesAbstain.add(votes[2]);
+        _proposals[id].votesAgainst = _proposals[id].votesAgainst.add(votes[0]);
+        _proposals[id].votesFor = _proposals[id].votesFor.add(votes[1]);
+        _proposals[id].votesAbstain = _proposals[id].votesAbstain.add(votes[2]);
     }
 
     /**
