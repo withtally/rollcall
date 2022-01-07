@@ -299,7 +299,6 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         uint8 support,
         string memory reason
     ) internal virtual returns (uint256) {
-        Proposal storage p = _proposals[governor][id];
         Verifier.Account memory a = _accounts[governor][id][source];
         require(
             state(governor, id) == ProposalState.Active,
