@@ -6,7 +6,7 @@ To do so, Layer 1 governance's implementation provides a set of weight mappings 
 
 ## Goals
 
-1. Eeduce the overhead for participating in governance by reducing voting gas costs
+1. Reduce the overhead for participating in governance by reducing voting gas costs
 2. Enable onchain governance for tokens which do not already support the snapshot functionality.
 3. Provide a modular framework for governance voting, where vote weights can be pulled from one or more sources and is not limited to token voting exclusively.
 

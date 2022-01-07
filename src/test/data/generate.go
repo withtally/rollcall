@@ -41,7 +41,7 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
-	ethRPC, err := rpc.Dial("https://eth-mainnet.alchemyapi.io/v2/MdZcimFJ2yz2z6pw21UYL-KNA0zmgX-F")
+	ethRPC, err := rpc.Dial("https://icy-snowy-bird.kovan.quiknode.pro/956a51156345843cee4580a7e4bfd1f49269346c/")
 	if err != nil {
 		log.Fatalf("dailing eth rpc: %+v", err)
 	}
@@ -71,7 +71,7 @@ func main() {
 		"eth_getProof",
 		common.HexToAddress(*contract),
 		keys,
-		hexutil.EncodeBig(blockHeight),
+		"latest", //hexutil.EncodeBig(blockHeight),
 	); err != nil {
 		log.Fatalf("getting storage proof: %+v", err)
 	}

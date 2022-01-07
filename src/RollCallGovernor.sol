@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.0 (governance/Governor.sol)
-
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
