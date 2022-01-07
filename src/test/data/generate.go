@@ -89,7 +89,7 @@ func main() {
 	println("Storage Key:\n", key.Hex())
 	println("Storage Value:\n", resp.StorageProof[0].Value)
 
-	var accountProof [][][]byte
+	accountProof := make([][][][]byte, 1)
 	for _, p := range resp.AccountProof {
 		bz, err := hexutil.Decode(p)
 		if err != nil {
@@ -99,7 +99,7 @@ func main() {
 		if err := rlp.DecodeBytes(bz, &val); err != nil {
 			log.Fatalf("decoding node rlp: %+v", err)
 		}
-		accountProof = append(accountProof, val)
+		accountProof[0] = append(accountProof[0], val)
 	}
 
 	accountProofRLP, err := rlp.EncodeToBytes(accountProof)
