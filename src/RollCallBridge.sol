@@ -31,7 +31,6 @@ contract RollCallBridge is IRollCallBridge, Ownable {
             id,
             governor.sources(),
             governor.slots(),
-            proposal.root,
             proposal.start,
             proposal.end
         );

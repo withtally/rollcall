@@ -13,8 +13,7 @@ import "openzeppelin-contracts/introspection/ERC165.sol";
  */
 abstract contract IRollCallGovernor is IERC165 {
     struct Proposal {
-        uint256 snapshot;
-        bytes32 root;
+        bytes32 snapshot;
         uint64 start;
         uint64 end;
         bool executed;
@@ -106,7 +105,7 @@ abstract contract IRollCallGovernor is IERC165 {
      * @notice module:core
      * @dev Block number the storage root was commited, which is used to retrieve user's votes and quorum.
      */
-    function proposalSnapshot(bytes32 id) public view virtual returns (uint256);
+    function proposalSnapshot(bytes32 id) public view virtual returns (bytes32);
 
     /**
      * @notice module:core
@@ -137,7 +136,6 @@ abstract contract IRollCallGovernor is IERC165 {
      * Emits a {ProposalCreated} event.
      */
     function propose(
-        bytes memory blockHeaderRLP,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,

@@ -131,8 +131,8 @@ contract RollCallVoterProposing is RollCallVoterSetup {
         governor.propose(
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
-                snapshot: block.number,
-                root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
+                snapshot: blockhash(block.number),
+                // stateroot: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: ts,
                 end: ts + 100,
                 executed: false,
@@ -148,7 +148,7 @@ contract RollCallVoterProposing is RollCallVoterSetup {
     //     governor.propose(
     //         1,
     //         IRollCallGovernor.Proposal({
-    //             snapshot: block.number,
+    //             snapshot: blockhash(block.number),
     //             root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
     //             start: ts,
     //             end: ts + 100,
@@ -171,8 +171,8 @@ contract RollCallVoter_State is RollCallVoterSetup {
         governor.propose(
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
-                snapshot: block.number,
-                root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
+                snapshot: blockhash(block.number),
+                // stateroot: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
                 executed: false,
@@ -226,8 +226,8 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         governor.propose(
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
-                snapshot: block.number,
-                root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
+                snapshot: blockhash(block.number),
+                // stateroot: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
                 executed: false,
@@ -243,7 +243,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         );
 
         assertEq(
-            proposal.root,
+            proposal.stateroot,
             hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
             "root doesnt match"
         );
@@ -299,8 +299,8 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
         governor.propose(
             id,
             IRollCallGovernor.Proposal({
-                snapshot: block.number,
-                root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
+                snapshot: blockhash(block.number),
+                // stateroot: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
                 executed: false,

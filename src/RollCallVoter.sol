@@ -48,6 +48,8 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         private _voted;
     mapping(address => mapping(bytes32 => mapping(address => bytes32)))
         private _slots;
+    mapping(address => mapping(bytes32 => mapping(address => Verifier.Account)))
+        private _accounts;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -140,17 +142,30 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         return _proposals[governor][id];
     }
 
+    function activate(
+        address governor,
+        bytes32 id,
+        bytes memory blockHeaderRLP
+    ) external {
+        // _accounts
+        Verifier.BlockHeader memory blockHeader = Verifier.verifyBlockHeader(
+            blockHeaderRLP
+        );
+
+        _proposals[governor][id].stateroot = blockHeader.stateRootHash;
+    }
+
     function propose(
         address governor,
         bytes32 id,
         address[] memory sources,
         bytes32[] memory slots,
-        bytes32 root,
+        bytes32 snapshot,
         uint64 start,
         uint64 end
     ) external override onlyBridge {
         Proposal storage p = _proposals[governor][id];
-        p.root = root;
+        p.snapshot = snapshot;
         p.start = start;
         p.end = end;
 
@@ -276,7 +291,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
 
         Verifier.Account memory account = Verifier.extractAccountFromProof(
             keccak256(abi.encodePacked(source)),
-            p.root,
+            p.stateroot,
             proofs[0].toList()
         );
 

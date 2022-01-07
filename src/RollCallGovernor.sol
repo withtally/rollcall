@@ -11,8 +11,6 @@ import {Address} from "openzeppelin-contracts/utils/Address.sol";
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
 
-import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
-
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
  * - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
@@ -216,7 +214,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         view
         virtual
         override
-        returns (uint256)
+        returns (bytes32)
     {
         return _proposals[id].snapshot;
     }
@@ -253,7 +251,6 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
      * @dev See {IRollCallGovernor-propose}.
      */
     function propose(
-        bytes memory blockHeaderRLP,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
@@ -284,12 +281,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         // TODO: Make sure safe cast
         uint64 deadline = start + uint64(votingPeriod());
 
-        Verifier.BlockHeader memory blockHeader = Verifier.verifyBlockHeader(
-            blockHeaderRLP
-        );
-
-        proposal_.snapshot = blockHeader.number;
-        proposal_.root = blockHeader.stateRootHash;
+        proposal_.snapshot = blockhash(block.number - 1);
         proposal_.start = start;
         proposal_.end = deadline;
 
