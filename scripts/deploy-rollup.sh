@@ -2,6 +2,10 @@
 
 set -eo pipefail
 
-export ETH_RPC_URL=https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}
+# import the deployment helpers
+. $(dirname $0)/common.sh
 
-forge create RollCallBridge --constructor-args 0x4361d0F75A0186C05f971c566dC6bEa5957483fD
+pushd $(dirname "$0")/..
+
+RollCallVoterAddress=$(deploy src/RollCallVoter.sol:RollCallVoter 0x4361d0F75A0186C05f971c566dC6bEa5957483fD)
+echo "RollCallVoter deployed to: $RollCallVoterAddress"

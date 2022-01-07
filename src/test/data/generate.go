@@ -41,7 +41,7 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
-	ethRPC, err := rpc.Dial("https://icy-snowy-bird.kovan.quiknode.pro/956a51156345843cee4580a7e4bfd1f49269346c/")
+	ethRPC, err := rpc.Dial("https://eth-mainnet.alchemyapi.io/v2/MdZcimFJ2yz2z6pw21UYL-KNA0zmgX-F")
 	if err != nil {
 		log.Fatalf("dailing eth rpc: %+v", err)
 	}
@@ -54,15 +54,13 @@ func main() {
 		common.LeftPadBytes(big.NewInt(*slot).Bytes(), 32),
 	)
 
-	println("Storage Key:\n", key.Hex())
-
 	keys := []string{key.Hex()}
 
 	blockHeight := big.NewInt(*height)
 
-	block, err := ethClient.BlockByNumber(ctx, blockHeight)
+	header, err := ethClient.HeaderByNumber(ctx, blockHeight)
 	if err != nil {
-		log.Fatalf("getting block: %+v", err)
+		log.Fatalf("getting block header: %+v", err)
 	}
 
 	var resp StorageProof
@@ -71,21 +69,27 @@ func main() {
 		"eth_getProof",
 		common.HexToAddress(*contract),
 		keys,
-		"latest", //hexutil.EncodeBig(blockHeight),
+		hexutil.EncodeBig(blockHeight),
 	); err != nil {
 		log.Fatalf("getting storage proof: %+v", err)
 	}
 
-	resp.StateRoot = block.Root()
-	resp.Height = block.Header().Number
+	resp.StateRoot = header.Root
+	resp.Height = header.Number
 
+	headerRLP, err := rlp.EncodeToBytes(header)
+	if err != nil {
+		log.Fatalf("encoding header rlp: %+v", err)
+	}
+
+	println("Block Hash:\n", header.Hash().Hex())
+	println("Block header:\n", hexutil.Encode(headerRLP))
 	println("State Root:\n", resp.StateRoot.Hex())
-
 	println("Storage Hash:\n", resp.StorageHash.Hex())
+	println("Storage Key:\n", key.Hex())
+	println("Storage Value:\n", resp.StorageProof[0].Value)
 
-	println("Slot Value:\n", resp.StorageProof[0].Value)
-
-	target := make([][][][]byte, 2)
+	accountProof := make([][][][]byte, 1)
 	for _, p := range resp.AccountProof {
 		bz, err := hexutil.Decode(p)
 		if err != nil {
@@ -95,9 +99,17 @@ func main() {
 		if err := rlp.DecodeBytes(bz, &val); err != nil {
 			log.Fatalf("decoding node rlp: %+v", err)
 		}
-		target[0] = append(target[0], val)
+		accountProof[0] = append(accountProof[0], val)
 	}
 
+	accountProofRLP, err := rlp.EncodeToBytes(accountProof)
+	if err != nil {
+		log.Fatalf("encoding rlp: %+v", err)
+	}
+
+	println("Account Proof:\n", hexutil.Encode(accountProofRLP))
+
+	var storageProof [][][]byte
 	for _, p := range resp.StorageProof[0].Proof {
 		bz, err := hexutil.Decode(p)
 		if err != nil {
@@ -107,14 +119,13 @@ func main() {
 		if err := rlp.DecodeBytes(bz, &val); err != nil {
 			log.Fatalf("decoding node rlp: %+v", err)
 		}
-		target[1] = append(target[1], val)
+		storageProof = append(storageProof, val)
 	}
 
-	encoded, err := rlp.EncodeToBytes(target)
+	storageProofRLP, err := rlp.EncodeToBytes(storageProof)
 	if err != nil {
 		log.Fatalf("encoding rlp: %+v", err)
 	}
 
-	hex := hexutil.Encode(encoded)
-	println("Storage Proof:\n", hex)
+	println("Storage Proof:\n", hexutil.Encode(storageProofRLP))
 }

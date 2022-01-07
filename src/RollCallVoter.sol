@@ -46,8 +46,11 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     mapping(address => mapping(bytes32 => uint256[10])) private _votes;
     mapping(address => mapping(bytes32 => mapping(address => bool)))
         private _voted;
+    mapping(address => mapping(bytes32 => address[])) private _sources;
     mapping(address => mapping(bytes32 => mapping(address => bytes32)))
         private _slots;
+    mapping(address => mapping(bytes32 => mapping(address => Verifier.Account)))
+        private _accounts;
 
     /**
      * @dev Sets the value for {name} and {version}
@@ -140,21 +143,52 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         return _proposals[governor][id];
     }
 
+    function activate(
+        address governor,
+        bytes32 id,
+        bytes memory blockHeaderRLP,
+        bytes memory proofRlp
+    ) external {
+        Verifier.BlockHeader memory blockHeader = Verifier.parseBlockHeader(
+            blockHeaderRLP
+        );
+
+        require(
+            blockHeader.hash == _proposals[governor][id].snapshot,
+            "voter: doesnt match snapshot"
+        );
+
+        _proposals[governor][id].stateroot = blockHeader.stateRootHash;
+
+        RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
+        for (uint256 i = 0; i < _sources[governor][id].length; i++) {
+            address source = _sources[governor][id][i];
+            Verifier.Account memory account = Verifier.extractAccountFromProof(
+                keccak256(abi.encodePacked(source)),
+                blockHeader.stateRootHash,
+                proofs[i].toList()
+            );
+            require(account.exists, "rollcall: account doesnt exist");
+            _accounts[governor][id][source] = account;
+        }
+    }
+
     function propose(
         address governor,
         bytes32 id,
         address[] memory sources,
         bytes32[] memory slots,
-        bytes32 root,
+        bytes32 snapshot,
         uint64 start,
         uint64 end
     ) external override onlyBridge {
         Proposal storage p = _proposals[governor][id];
-        p.root = root;
+        p.snapshot = snapshot;
         p.start = start;
         p.end = end;
 
         for (uint256 i = 0; i < slots.length; i++) {
+            _sources[governor][id].push(sources[i]);
             _slots[governor][id][sources[i]] = slots[i];
         }
     }
@@ -266,21 +300,15 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         string memory reason
     ) internal virtual returns (uint256) {
         Proposal storage p = _proposals[governor][id];
+        Verifier.Account memory a = _accounts[governor][id][source];
         require(
             state(governor, id) == ProposalState.Active,
             "rollcall: vote not currently active"
         );
         require(!_voted[governor][id][voter], "rollcall: already voted");
+        require(a.exists, "rollcall: account doesnt exist");
 
-        RLPReader.RLPItem[] memory proofs = proofRlp.toRlpItem().toList();
-
-        Verifier.Account memory account = Verifier.extractAccountFromProof(
-            keccak256(abi.encodePacked(source)),
-            p.root,
-            proofs[0].toList()
-        );
-
-        require(account.exists, "rollcall: account doesnt exist");
+        RLPReader.RLPItem[] memory proof = proofRlp.toRlpItem().toList();
 
         Verifier.SlotValue memory balance = Verifier.extractSlotValueFromProof(
             keccak256(
@@ -293,8 +321,8 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
                     )
                 )
             ),
-            account.storageRoot,
-            proofs[1].toList()
+            a.storageRoot,
+            proof
         );
 
         require(balance.exists, "voter: balance doesnt exist");

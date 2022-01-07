@@ -22,7 +22,8 @@ abstract contract IRollCallVoter is IERC165 {
     }
 
     struct Proposal {
-        bytes32 root;
+        bytes32 snapshot;
+        bytes32 stateroot;
         uint64 start;
         uint64 end;
         bool queue;
@@ -58,7 +59,7 @@ abstract contract IRollCallVoter is IERC165 {
         bytes32 id,
         address[] memory sources,
         bytes32[] memory slots,
-        bytes32 root,
+        bytes32 snapshot,
         uint64 start,
         uint64 end
     ) external virtual;
