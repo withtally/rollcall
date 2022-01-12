@@ -2,11 +2,11 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import {SafeMath} from "openzeppelin-contracts/math/SafeMath.sol";
-import {EIP712} from "openzeppelin-contracts/drafts/EIP712.sol";
-import {ERC165} from "openzeppelin-contracts/introspection/ERC165.sol";
-import {IERC165} from "openzeppelin-contracts/introspection/IERC165.sol";
-import {Address} from "openzeppelin-contracts/utils/Address.sol";
+import {SafeMath} from "../lib/openzeppelin-contracts/contracts/math/SafeMath.sol";
+import {EIP712} from "../lib/openzeppelin-contracts/contracts/drafts/EIP712.sol";
+import {ERC165} from "../lib/openzeppelin-contracts/contracts/introspection/ERC165.sol";
+import {IERC165} from "../lib/openzeppelin-contracts/contracts/introspection/IERC165.sol";
+import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";

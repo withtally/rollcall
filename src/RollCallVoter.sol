@@ -2,13 +2,13 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import {SafeMath} from "openzeppelin-contracts/math/SafeMath.sol";
-import {ECDSA} from "openzeppelin-contracts/cryptography/ECDSA.sol";
-import {Context} from "openzeppelin-contracts/utils/Context.sol";
-import {EIP712} from "openzeppelin-contracts/drafts/EIP712.sol";
-import {ERC165} from "openzeppelin-contracts/introspection/ERC165.sol";
-import {IERC165} from "openzeppelin-contracts/introspection/IERC165.sol";
-import {Address} from "openzeppelin-contracts/utils/Address.sol";
+import {SafeMath} from "../lib/openzeppelin-contracts/contracts/math/SafeMath.sol";
+import {ECDSA} from "../lib/openzeppelin-contracts/contracts/cryptography/ECDSA.sol";
+import {Context} from "../lib/openzeppelin-contracts/contracts/utils/Context.sol";
+import {EIP712} from "../lib/openzeppelin-contracts/contracts/drafts/EIP712.sol";
+import {ERC165} from "../lib/openzeppelin-contracts/contracts/introspection/ERC165.sol";
+import {IERC165} from "../lib/openzeppelin-contracts/contracts/introspection/IERC165.sol";
+import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";

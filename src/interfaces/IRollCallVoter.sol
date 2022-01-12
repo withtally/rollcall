@@ -4,7 +4,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-contracts/introspection/ERC165.sol";
+import "../../lib/openzeppelin-contracts/contracts/introspection/ERC165.sol";
 
 import {IRollCallGovernor} from "./IRollCallGovernor.sol";
 

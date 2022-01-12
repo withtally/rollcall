@@ -2,7 +2,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
+import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
