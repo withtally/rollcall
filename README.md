@@ -1,9 +1,9 @@
-# RollCall
+# RollCall: Rollup Governance Libraries
 
 RollCall is a set of cross chain governance solutions
 
-- **RollCallExecutor**: Manage mainnet treasury from a governance on a rollup.
 - **RollCallVoter**: Voting on mainnet governance proposals on a rollup.
+- **RollCallExecutor**: Manage mainnet treasury from a governance on a rollup.
 
 ## Quickstart
 
@@ -16,43 +16,12 @@ cargo install --git https://github.com/gakonst/foundry --bin forge --locked
 Run tests
 
 ```
-forge test --force --verbosity 4
-```
-
-## RollCallExecutor
-
-Manage Ethereum mainnet (Layer 1) treasury from a governance on an Optimistic Rollups (Layer 2).
-
-### Goals
-
-1. Provide path for incremental migration of DAO Governance from Layer 1 to Layer 2.
-
-### Sequence Diagram
-
-```
-┌──────┐                                         ┌──────────┐     ┌───────────┐
-│Client│                                         │L2Governor│     │L1 Executor│
-└──┬───┘                                         └────┬─────┘     └───────────┘
-   │                                                  │                 │
-   │ propose(...)                                     │                 │
-   ├─────────────────────────────────────────────────►│                 │
-   │                                                  │                 │
-   │ vote (...)                                       │                 │
-   ├─────────────────────────────────────────────────►│                 │
-   │                                                  │                 │
-   │ queue (...)                                      │                 │
-   ├─────────────────────────────────────────────────►│                 │
-   │                                                  │                 │
-   │ execute(...)                                     │                 │
-   ├─────────────────────────────────────────────────►│                 │
-   │                                                  │                 │
-   │                                                  │ bridge execute  │
-   │                                                  │────────────────►│
+forge test --force --verbosity vvvv
 ```
 
 ## RollCallVoter
 
-Voting on Ethereum mainnet (Layer 1) governance proposals on an Optimistic Rollups (Layer 2).
+Voting on Ethereum mainnet (Layer 1) governance proposals on an Optimistic Rollups (Layer 2). We move only the voting to Layer 2.
 
 To do so, Layer 1 governance's implementation provides a set of weight mappings (`mapping(address => uint256)`) which are used to compute a voters weight. When a proposal is created, the storage root of the block is bridged to Layer 2 and voters can submit votes on Layer 2 using storage proofs.
 
@@ -113,7 +82,7 @@ Deploy RollCallVoter to Optimism
 ROLLCALL_BRIDGE=<0xADDRESS FROM ABOVE> RollCallVoter deployed to: 0x1ea2030f42718790adbd2a9448ea6ae2c6e2b06e
 ```
 
-## Generating Storage Proofs
+### Generating Storage Proofs
 
 Install [Golang](https://go.dev/doc/install).
 
@@ -122,3 +91,38 @@ Run the generate script with the desired contract, voter address, and mapping st
 ```
 go run src/test/data/generate.go -contract 0x7ae1d57b58fa6411f32948314badd83583ee0e8c -voter 0xba740c9035fF3c24A69e0df231149c9cd12BAe07 -slot 0
 ```
+
+## RollCallExecutor
+
+Manage Ethereum mainnet (Layer 1) treasury from a governance on an Optimistic Rollups (Layer 2). We move the DAO, minus the treasury, to Layer 2.
+
+### Goals
+
+1. Provide path for incremental migration of DAO Governance from Layer 1 to Layer 2.
+
+### Sequence Diagram
+
+```
+┌──────┐                                         ┌──────────┐     ┌───────────┐
+│Client│                                         │L2Governor│     │L1 Executor│
+└──┬───┘                                         └────┬─────┘     └───────────┘
+   │                                                  │                 │
+   │ propose(...)                                     │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │ vote (...)                                       │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │ queue (...)                                      │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │ execute(...)                                     │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │                                                  │ bridge execute  │
+   │                                                  │────────────────►│
+```
+
+### Disclaimer
+
+_These smart contracts are being provided as is. No guarantee, representation or warranty is being made, express or implied, as to the safety or correctness of the user interface or the smart contracts. They have not been audited and as such there can be no assurance they will work as intended, and users may experience delays, failures, errors, omissions, loss of transmitted information or loss of funds. Paradigm is not liable for any of the foregoing. Users should proceed with caution and use at their own risk._
