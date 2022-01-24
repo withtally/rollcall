@@ -9,8 +9,13 @@ pushd $(dirname "$0")/..
 
 ARGS=${@:1}
 
-RollCallBridgeAddress=$(deploy RollCallBridge --constructor-args  0x4361d0F75A0186C05f971c566dC6bEa5957483fD)
+CDM=0x4361d0F75A0186C05f971c566dC6bEa5957483fD
+if [[ ${ROLLCALL_MAINNET} ]]; then
+    CDM=0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1
+fi
+
+RollCallBridgeAddress=$(deploy RollCallBridge "$ARGS" --constructor-args "$CDM")
 echo "RollCallBridge deployed to: $RollCallBridgeAddress"
 
-SimpleRollCallGovernorAddress=$(deploy SimpleRollCallGovernor --constructor-args  "Paper Governor" --constructor-args  "[781B575CA559263eb232B854195D6dC0AB720105]" --constructor-args  "[0000000000000000000000000000000000000000000000000000000000000000]" --constructor-args  $RollCallBridgeAddress)
+SimpleRollCallGovernorAddress=$(deploy SimpleRollCallGovernor "$ARGS" --constructor-args "PaperGovernor" --constructor-args "$ROLLCALL_SOURCES" --constructor-args "$ROLLCALL_SLOTS" --constructor-args $RollCallBridgeAddress)
 echo "SimpleRollCallGovernor deployed to: $SimpleRollCallGovernorAddress"

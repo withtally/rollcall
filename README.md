@@ -96,7 +96,22 @@ To do so, Layer 1 governance's implementation provides a set of weight mappings 
 
 ### Deployment
 
+Deploy RollCallBridge and RollCallGovernor
 
+```bash
+ROLLCALL_MAINNET=0 \
+ROLLCALL_SOURCES=[0x781B575CA559263eb232B854195D6dC0AB720105] \
+ROLLCALL_SLOTS=[0x0000000000000000000000000000000000000000000000000000000000000000] \
+./scripts/deploy-base.sh --rpc-url ...
+```
+
+Deploy RollCallVoter to Optimism
+
+```
+> ./scripts/deploy-rollup.sh --rpc-url ...
+...
+ROLLCALL_BRIDGE=<0xADDRESS FROM ABOVE> RollCallVoter deployed to: 0x1ea2030f42718790adbd2a9448ea6ae2c6e2b06e
+```
 
 ## Generating Storage Proofs
 

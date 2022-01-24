@@ -32,13 +32,9 @@ contract RollCallGovernorSetup is DSTest {
     function setUp() public virtual {
         token = new GovernanceERC20();
 
-        // Deploy CDM at predeploy address
-        vm.etch(
-            Lib_PredeployAddresses.L2_CROSS_DOMAIN_MESSENGER,
-            type(OVM_FakeCrossDomainMessenger).runtimeCode
-        );
+        OVM_FakeCrossDomainMessenger cdm = new OVM_FakeCrossDomainMessenger();
 
-        bridge = new RollCallBridge();
+        bridge = new RollCallBridge(cdm);
 
         sources[0] = address(token);
         slots[0] = bytes32("1");

@@ -10,9 +10,12 @@ import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 
 contract RollCallBridge is IRollCallBridge, Ownable {
-    iOVM_CrossDomainMessenger private immutable _cdm =
-        iOVM_CrossDomainMessenger(0x4200000000000000000000000000000000000007);
+    iOVM_CrossDomainMessenger private immutable _cdm;
     address public voter;
+
+    constructor(iOVM_CrossDomainMessenger cdm_) public {
+        _cdm = cdm_;
+    }
 
     function setVoter(address voter_) external onlyOwner {
         voter = voter_;
