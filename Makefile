@@ -10,7 +10,7 @@ deploy-opt-mainnet:; @./scripts/deploy-rollup.sh
 deploy-kovan: export ETH_RPC_URL = $(call network,eth-kovan)
 deploy-kovan:; @./scripts/deploy-base.sh
 
-deploy-opt-kovan:export ETH_RPC_URL = $(call network,opt-kovan)
+deploy-opt-kovan: export ETH_RPC_URL = $(call network,opt-kovan)
 deploy-opt-kovan:; @./scripts/deploy-rollup.sh
 
 # Returns the URL to deploy to a hosted node.
