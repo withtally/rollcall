@@ -69,10 +69,8 @@ contract RollCallGovernor {
 
 contract RollCallVoterTester is RollCallVoter {
     constructor(
-        string memory name_,
-        address cdm_,
         address bridge_
-    ) public RollCallVoter(name_, cdm_, bridge_) {}
+    ) public RollCallVoter(bridge_) {}
 
     function hashTypedDataV4(bytes32 id, uint256 support)
         public
@@ -90,28 +88,30 @@ contract RollCallVoterTester is RollCallVoter {
 contract RollCallVoterSetup is DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     GovernanceERC20 internal token;
-    OVM_FakeCrossDomainMessenger internal cdm;
     RollCallBridge internal bridge;
     RollCallVoterTester internal voter;
     RollCallGovernor internal governor;
     OVM_FakeL1BlockNumber internal blocknumber;
 
     function setUp() public virtual {
-        blocknumber = OVM_FakeL1BlockNumber(
-            Lib_PredeployAddresses.L1_BLOCK_NUMBER
-        );
+        // Deploy L1BlockNumber at predeploy address
         vm.etch(
             Lib_PredeployAddresses.L1_BLOCK_NUMBER,
             type(OVM_FakeL1BlockNumber).runtimeCode
         );
+        blocknumber = OVM_FakeL1BlockNumber(
+            Lib_PredeployAddresses.L1_BLOCK_NUMBER
+        );
 
-        cdm = new OVM_FakeCrossDomainMessenger();
+        // Deploy CDM at predeploy address
+        vm.etch(
+            Lib_PredeployAddresses.L2_CROSS_DOMAIN_MESSENGER,
+            type(OVM_FakeCrossDomainMessenger).runtimeCode
+        );
 
-        bridge = new RollCallBridge(cdm);
+        bridge = new RollCallBridge();
 
         voter = new RollCallVoterTester(
-            "rollcall",
-            address(cdm),
             address(bridge)
         );
 
@@ -218,7 +218,6 @@ contract RollCallVoter_State is RollCallVoterSetup {
             bytes32(uint256(1)),
             IRollCallGovernor.Proposal({
                 snapshot: blockhash(block.number),
-                // stateroot: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
                 start: start,
                 end: end,
                 executed: false,

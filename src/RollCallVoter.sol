@@ -38,8 +38,8 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     bytes32 public constant BALLOT_TYPEHASH =
         keccak256("Ballot(bytes32 id,uint8 support)");
 
-    string private _name;
-    iOVM_CrossDomainMessenger private immutable _cdm;
+    iOVM_CrossDomainMessenger private immutable _cdm =
+        iOVM_CrossDomainMessenger(0x4200000000000000000000000000000000000007);
     address private _bridge;
 
     mapping(address => mapping(bytes32 => Proposal)) private _proposals;
@@ -55,13 +55,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     /**
      * @dev Sets the value for {name} and {version}
      */
-    constructor(
-        string memory name_,
-        address cdm_,
-        address bridge_
-    ) public EIP712(name_, version()) {
-        _name = name_;
-        _cdm = iOVM_CrossDomainMessenger(cdm_);
+    constructor(address bridge_) public EIP712("rollcallvoter", version()) {
         _bridge = bridge_;
     }
 
@@ -84,7 +78,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
      * @dev See {IRollCallVoter-name}.
      */
     function name() public view virtual override returns (string memory) {
-        return _name;
+        return "rollcallvoter";
     }
 
     /**

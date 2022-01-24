@@ -7,6 +7,7 @@ import "openzeppelin-contracts/token/ERC20/ERC20.sol";
 
 import {Vm} from "./lib/Vm.sol";
 import {OVM_FakeCrossDomainMessenger} from "./OVM_FakeCrossDomainMessenger.sol";
+import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
 import {RollCallBridge} from "../RollCallBridge.sol";
 import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
 import {SimpleRollCallGovernor} from "../extensions/SimpleRollCallGovernor.sol";
@@ -22,7 +23,6 @@ contract GovernanceERC20 is ERC20 {
 contract RollCallGovernorSetup is DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     GovernanceERC20 internal token;
-    OVM_FakeCrossDomainMessenger internal cdm;
     RollCallBridge internal bridge;
     SimpleRollCallGovernor internal governor;
 
@@ -31,8 +31,14 @@ contract RollCallGovernorSetup is DSTest {
 
     function setUp() public virtual {
         token = new GovernanceERC20();
-        cdm = new OVM_FakeCrossDomainMessenger();
-        bridge = new RollCallBridge(cdm);
+
+        // Deploy CDM at predeploy address
+        vm.etch(
+            Lib_PredeployAddresses.L2_CROSS_DOMAIN_MESSENGER,
+            type(OVM_FakeCrossDomainMessenger).runtimeCode
+        );
+
+        bridge = new RollCallBridge();
 
         sources[0] = address(token);
         slots[0] = bytes32("1");
