@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (governance/IRollCallBridge.sol)
 
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 
 /**
  * @dev Interface of the {RollCallBridge} core.

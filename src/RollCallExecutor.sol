@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
@@ -15,7 +15,7 @@ contract RollCallExecutor {
         address cdm,
         address timelock_,
         address l2dao_
-    ) public {
+    ) {
         _cdm = iOVM_CrossDomainMessenger(cdm);
         timelock = timelock_;
         l2dao = l2dao_;

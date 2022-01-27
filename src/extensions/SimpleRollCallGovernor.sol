@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.9;
 
 import {RollCallGovernor} from "../RollCallGovernor.sol";
 
@@ -17,7 +16,7 @@ contract SimpleRollCallGovernor is RollCallGovernor {
         address[] memory sources_,
         bytes32[] memory slots_,
         address bridge_
-    ) public RollCallGovernor(name_, sources_, slots_, bridge_) {}
+    ) RollCallGovernor(name_, sources_, slots_, bridge_) {}
 
     function quorum(uint256 blockNumber)
         public
@@ -50,8 +49,8 @@ contract SimpleRollCallGovernor is RollCallGovernor {
         internal
         override
     {
-        _count[id].votesAgainst = _count[id].votesAgainst.add(votes[0]);
-        _count[id].votesFor = _count[id].votesFor.add(votes[1]);
-        _count[id].votesAbstain = _count[id].votesAbstain.add(votes[2]);
+        _count[id].votesAgainst += votes[0];
+        _count[id].votesFor += votes[1];
+        _count[id].votesAbstain += votes[2];
     }
 }

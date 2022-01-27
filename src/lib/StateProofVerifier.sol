@@ -2,7 +2,7 @@
 
 // Copied from: https://github.com/lidofinance/curve-merkle-oracle/blob/main/contracts/StateProofVerifier.sol
 
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 
 import {RLPReader} from "./RLPReader.sol";
 import {MerklePatriciaProofVerifier} from "./MerklePatriciaProofVerifier.sol";

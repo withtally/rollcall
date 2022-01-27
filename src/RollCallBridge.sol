@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
@@ -13,7 +13,7 @@ contract RollCallBridge is IRollCallBridge, Ownable {
     iOVM_CrossDomainMessenger private immutable _cdm;
     address public voter;
 
-    constructor(iOVM_CrossDomainMessenger cdm_) public {
+    constructor(iOVM_CrossDomainMessenger cdm_) {
         _cdm = cdm_;
     }
 

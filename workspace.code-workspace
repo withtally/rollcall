@@ -2,6 +2,9 @@
   "folders": [
     {
       "path": "."
+    },
+    {
+      "path": "../forge-optimism"
     }
   ],
   "settings": {
@@ -11,6 +14,6 @@
       "Solidity-RLP/=./lib/Solidity-RLP/contracts/",
       "optimism/=./lib/optimism/"
     ],
-    "solidity.compileUsingRemoteVersion": "v0.6.12+commit.27d51765"
+    "solidity.compileUsingRemoteVersion": "v0.8.11+commit.d7f03943"
   }
 }

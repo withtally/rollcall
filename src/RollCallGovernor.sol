@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
-import {SafeMath} from "../lib/openzeppelin-contracts/contracts/math/SafeMath.sol";
-import {EIP712} from "../lib/openzeppelin-contracts/contracts/drafts/EIP712.sol";
-import {ERC165} from "../lib/openzeppelin-contracts/contracts/introspection/ERC165.sol";
-import {IERC165} from "../lib/openzeppelin-contracts/contracts/introspection/IERC165.sol";
+import {EIP712} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
+import {ERC165} from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
+import {IERC165} from "../lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol";
 import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 
 import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
@@ -16,8 +15,6 @@ import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
  * - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
  */
 abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
-    using SafeMath for uint256;
-
     string private _name;
     IRollCallBridge private _bridge;
 
@@ -51,7 +48,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         address[] memory sources_,
         bytes32[] memory slots_,
         address bridge_
-    ) public EIP712(name_, version()) {
+    ) EIP712(name_, version()) {
         require(
             sources_.length == slots_.length,
             "governor: sources slots length mismatch"

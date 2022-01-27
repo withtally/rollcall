@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";

@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (governance/IRollCallVoter.sol)
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.9;
 
-import "../../lib/openzeppelin-contracts/contracts/introspection/ERC165.sol";
+import {IERC165} from "../../lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol";
 
 import {IRollCallGovernor} from "./IRollCallGovernor.sol";
 

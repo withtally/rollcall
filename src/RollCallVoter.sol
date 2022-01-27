@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
-import {SafeMath} from "../lib/openzeppelin-contracts/contracts/math/SafeMath.sol";
-import {ECDSA} from "../lib/openzeppelin-contracts/contracts/cryptography/ECDSA.sol";
+import {ECDSA} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Context} from "../lib/openzeppelin-contracts/contracts/utils/Context.sol";
-import {EIP712} from "../lib/openzeppelin-contracts/contracts/drafts/EIP712.sol";
-import {ERC165} from "../lib/openzeppelin-contracts/contracts/introspection/ERC165.sol";
-import {IERC165} from "../lib/openzeppelin-contracts/contracts/introspection/IERC165.sol";
+import {EIP712} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
+import {ERC165} from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
+import {IERC165} from "../lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol";
 import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
@@ -31,7 +30,6 @@ import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
  *
  */
 contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
-    using SafeMath for uint256;
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
 
@@ -55,7 +53,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     /**
      * @dev Sets the value for {name} and {version}
      */
-    constructor(address bridge_) public EIP712("rollcallvoter", version()) {
+    constructor(address bridge_) EIP712("rollcallvoter", version()) {
         _bridge = bridge_;
     }
 
@@ -321,9 +319,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         require(balance.exists, "voter: balance doesnt exist");
 
         _voted[governor][id][voter] = true;
-        _votes[governor][id][support] = _votes[governor][id][support].add(
-            balance.value
-        );
+        _votes[governor][id][support] += balance.value;
 
         emit VoteCast(voter, id, support, balance.value, reason);
 
