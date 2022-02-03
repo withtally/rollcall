@@ -1,41 +1,40 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.9;
-pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
-import "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import {OptimismTest} from "forge-optimism/OptimismTest.sol";
 
 import {Vm} from "./lib/Vm.sol";
 import {OVM_FakeL1BlockNumber} from "./OVM_FakeL1BlockNumber.sol";
-import {OVM_FakeCrossDomainMessenger} from "./OVM_FakeCrossDomainMessenger.sol";
 import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
 
 import {RollCallBridge} from "../RollCallBridge.sol";
-import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
+import {IRollCallL1Governor} from "../interfaces/IRollCallL1Governor.sol";
 import {IRollCallVoter} from "../interfaces/IRollCallVoter.sol";
 import {RollCallVoter} from "../RollCallVoter.sol";
 
 contract GovernanceERC20 is ERC20 {
-    constructor() public ERC20("Rollcall", "ROLLCALL") {}
+    constructor() ERC20("Rollcall", "ROLLCALL") {}
 
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 }
 
-contract RollCallGovernor {
+contract RollCallL1Governor {
     bytes32 public queueId;
     uint256[10] public queueVotes;
 
     RollCallBridge internal bridge;
 
-    mapping(bytes32 => IRollCallGovernor.Proposal) internal proposals;
+    mapping(bytes32 => IRollCallL1Governor.Proposal) internal proposals;
 
-    constructor(address bridge_) public {
+    constructor(address bridge_) {
         bridge = RollCallBridge(bridge_);
     }
 
-    function propose(bytes32 id, IRollCallGovernor.Proposal memory p) external {
+    function propose(bytes32 id, IRollCallL1Governor.Proposal memory p) external {
         proposals[id] = p;
         bridge.propose(id);
     }
@@ -44,7 +43,7 @@ contract RollCallGovernor {
         public
         view
         virtual
-        returns (IRollCallGovernor.Proposal memory)
+        returns (IRollCallL1Governor.Proposal memory)
     {
         return proposals[id];
     }
@@ -83,15 +82,17 @@ contract RollCallVoterTester is RollCallVoter {
     }
 }
 
-contract RollCallVoterSetup is DSTest {
+contract RollCallVoterSetup is OptimismTest, DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     GovernanceERC20 internal token;
     RollCallBridge internal bridge;
     RollCallVoterTester internal voter;
-    RollCallGovernor internal governor;
+    RollCallL1Governor internal governor;
     OVM_FakeL1BlockNumber internal blocknumber;
 
-    function setUp() public virtual {
+    function setUp() public virtual override {
+        super.setUp();
+
         // Deploy L1BlockNumber at predeploy address
         vm.etch(
             Lib_PredeployAddresses.L1_BLOCK_NUMBER,
@@ -101,21 +102,11 @@ contract RollCallVoterSetup is DSTest {
             Lib_PredeployAddresses.L1_BLOCK_NUMBER
         );
 
-        // Deploy CDM at predeploy address
-        vm.etch(
-            Lib_PredeployAddresses.L2_CROSS_DOMAIN_MESSENGER,
-            type(OVM_FakeCrossDomainMessenger).runtimeCode
-        );
-
-        bridge = new RollCallBridge(
-            OVM_FakeCrossDomainMessenger(
-                Lib_PredeployAddresses.L2_CROSS_DOMAIN_MESSENGER
-            )
-        );
+        bridge = new RollCallBridge(l1cdm);
 
         voter = new RollCallVoterTester(address(bridge));
 
-        governor = new RollCallGovernor(address(bridge));
+        governor = new RollCallL1Governor(address(bridge));
 
         bridge.setVoter(address(voter));
     }
@@ -130,7 +121,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
         uint64 ts = uint64(block.timestamp);
         governor.propose(
             bytes32(uint256(1)),
-            IRollCallGovernor.Proposal({
+            IRollCallL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: ts,
                 end: ts + 100,
@@ -145,7 +136,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
         uint64 ts = uint64(block.timestamp);
         governor.propose(
             id,
-            IRollCallGovernor.Proposal({
+            IRollCallL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: ts,
                 end: ts + 100,
@@ -167,7 +158,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
         uint64 ts = uint64(block.timestamp) + 10;
         governor.propose(
             id,
-            IRollCallGovernor.Proposal({
+            IRollCallL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: ts,
                 end: ts + 100,
@@ -198,7 +189,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
     //     vm.expectRevert("bridge: proposal end before now");
     //     governor.propose(
     //         1,
-    //         IRollCallGovernor.Proposal({
+    //         IRollCallL1Governor.Proposal({
     //             snapshot: blockhash(block.number),
     //             root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
     //             start: ts,
@@ -221,7 +212,7 @@ contract RollCallVoter_State is RollCallVoterSetup {
 
         governor.propose(
             bytes32(uint256(1)),
-            IRollCallGovernor.Proposal({
+            IRollCallL1Governor.Proposal({
                 snapshot: blockhash(block.number),
                 start: start,
                 end: end,
@@ -275,7 +266,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
 
         governor.propose(
             id,
-            IRollCallGovernor.Proposal({
+            IRollCallL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: start,
                 end: end,

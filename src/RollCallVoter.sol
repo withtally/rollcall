@@ -11,7 +11,7 @@ import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
-import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
+import {IRollCallL1Governor} from "./interfaces/IRollCallL1Governor.sol";
 import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
 
 import {iOVM_L1BlockNumber} from "./interfaces/iOVM_L1BlockNumber.sol";

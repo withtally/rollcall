@@ -10,7 +10,7 @@ import {IERC165} from "../../lib/openzeppelin-contracts/contracts/interfaces/IER
  *
  * _Available since v4.3._
  */
-abstract contract IRollCallGovernor is IERC165 {
+abstract contract IRollCallL1Governor is IERC165 {
     struct Proposal {
         bytes32 snapshot;
         uint64 start;
@@ -75,11 +75,13 @@ abstract contract IRollCallGovernor is IERC165 {
 
     /**
      * @notice module:core
+     * @dev Sources for voting balances. Corresponds 1:1 with `slots`.
      */
     function sources() external view virtual returns (address[] memory);
 
     /**
      * @notice module:core
+     * @dev Storage Slots for voting balances. Corresponds 1:1 with `sources`.
      */
     function slots() external view virtual returns (bytes32[] memory);
 
@@ -141,6 +143,9 @@ abstract contract IRollCallGovernor is IERC165 {
         string memory description
     ) public virtual returns (bytes32 id);
 
+    /**
+     * @dev Queue a proposal for execution.
+     */
     function queue(bytes32 id, uint256[10] calldata votes) external virtual;
 
     /**

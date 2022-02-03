@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// Forked from: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/governance/Governor.sol
 pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
@@ -7,14 +8,14 @@ import {ERC165} from "../lib/openzeppelin-contracts/contracts/utils/introspectio
 import {IERC165} from "../lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol";
 import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 
-import {IRollCallGovernor} from "./interfaces/IRollCallGovernor.sol";
+import {IRollCallL1Governor} from "./interfaces/IRollCallL1Governor.sol";
 import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
  * - A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
  */
-abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
+abstract contract RollCallL1Governor is ERC165, EIP712, IRollCallL1Governor {
     string private _name;
     IRollCallBridge private _bridge;
 
@@ -73,33 +74,33 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         returns (bool)
     {
         return
-            interfaceId == type(IRollCallGovernor).interfaceId ||
+            interfaceId == type(IRollCallL1Governor).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
     /**
-     * @dev See {IRollCallGovernor-name}.
+     * @dev See {IRollCallL1Governor-name}.
      */
     function name() public view virtual override returns (string memory) {
         return _name;
     }
 
     /**
-     * @dev See {IRollCallGovernor-version}.
+     * @dev See {IRollCallL1Governor-version}.
      */
     function version() public view virtual override returns (string memory) {
         return "1";
     }
 
     /**
-     * @dev See {IRollCallGovernor-sources}.
+     * @dev See {IRollCallL1Governor-sources}.
      */
     function sources() external view override returns (address[] memory) {
         return _sources;
     }
 
     /**
-     * @dev See {IRollCallGovernor-slots}.
+     * @dev See {IRollCallL1Governor-slots}.
      */
     function slots() external view override returns (bytes32[] memory) {
         return _slots;
@@ -126,7 +127,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     function votingPeriod() public view virtual override returns (uint256);
 
     /**
-     * @dev See {IRollCallGovernor-proposal}.
+     * @dev See {IRollCallL1Governor-proposal}.
      */
     function proposal(bytes32 id)
         public
@@ -138,7 +139,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev See {IRollCallGovernor-hash}.
+     * @dev See {IRollCallL1Governor-hash}.
      *
      * The proposal id is produced by hashing the RLC encoded `targets` array, the `values` array, the `calldatas` array
      * and the descriptionHash (bytes32 which itself is the keccak256 hash of the description string). This proposal id
@@ -161,7 +162,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev See {IRollCallGovernor-state}.
+     * @dev See {IRollCallL1Governor-state}.
      */
     function state(bytes32 id)
         public
@@ -204,7 +205,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev See {IRollCallGovernor-proposalSnapshot}.
+     * @dev See {IRollCallL1Governor-proposalSnapshot}.
      */
     function proposalSnapshot(bytes32 id)
         public
@@ -217,7 +218,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev See {IRollCallGovernor-proposalDeadline}.
+     * @dev See {IRollCallL1Governor-proposalDeadline}.
      */
     function proposalDeadline(bytes32 id)
         public
@@ -245,7 +246,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     function _countVote(bytes32 id, uint256[10] memory votes) internal virtual;
 
     /**
-     * @dev See {IRollCallGovernor-propose}.
+     * @dev See {IRollCallL1Governor-propose}.
      */
     function propose(
         address[] memory targets,
@@ -299,6 +300,9 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
         return id;
     }
 
+    /**
+     * @dev See {IRollCallL1Governor-queue}.
+     */
     function queue(bytes32 id, uint256[10] memory votes)
         external
         override
@@ -308,7 +312,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
     }
 
     /**
-     * @dev See {IRollCallGovernor-execute}.
+     * @dev See {IRollCallL1Governor-execute}.
      */
     function execute(
         address[] memory targets,
@@ -338,7 +342,7 @@ abstract contract RollCallGovernor is ERC165, EIP712, IRollCallGovernor {
      * @dev Internal cancel mechanism: locks up the proposal timer, preventing it from being re-submitted. Marks it as
      * canceled to allow distinguishing it from executed proposals.
      *
-     * Emits a {IRollCallGovernor-ProposalCanceled} event.
+     * Emits a {IRollCallL1Governor-ProposalCanceled} event.
      */
     function _cancel(
         address[] memory targets,

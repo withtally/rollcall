@@ -5,7 +5,7 @@ pragma solidity ^0.8.9;
 
 import {IERC165} from "../../lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol";
 
-import {IRollCallGovernor} from "./IRollCallGovernor.sol";
+import {IRollCallL1Governor} from "./IRollCallL1Governor.sol";
 
 /**
  * @dev Interface of the {RollCallVoter} core.

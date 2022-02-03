@@ -8,10 +8,7 @@ RollCall is a set of cross chain governance solutions
 ## Quickstart
 
 Install foundry
-
-```
-cargo install --git https://github.com/gakonst/foundry --bin forge --locked
-```
+https://github.com/gakonst/foundry#installation
 
 Run tests
 
@@ -20,6 +17,8 @@ forge test --force --verbosity vvvv
 ```
 
 ## RollCallVoter
+
+![rollcallvoter](./.github/assets/rollcallvoter.svg)
 
 Voting on Ethereum mainnet (Layer 1) governance proposals on an Optimistic Rollups (Layer 2). We move only the voting to Layer 2.
 
@@ -71,13 +70,13 @@ Deploy RollCallBridge and RollCallGovernor
 ROLLCALL_MAINNET=0 \
 ROLLCALL_SOURCES=[0x781B575CA559263eb232B854195D6dC0AB720105] \
 ROLLCALL_SLOTS=[0x0000000000000000000000000000000000000000000000000000000000000000] \
-./scripts/deploy-base.sh --rpc-url ...
+./scripts/deploy-voter-base.sh --rpc-url ...
 ```
 
 Deploy RollCallVoter to Optimism
 
 ```
-> ./scripts/deploy-rollup.sh --rpc-url ...
+> ./scripts/deploy-voter-rollup.sh --rpc-url ...
 ...
 ROLLCALL_BRIDGE=<0xADDRESS FROM ABOVE> RollCallVoter deployed to: 0x1ea2030f42718790adbd2a9448ea6ae2c6e2b06e
 ```
@@ -93,6 +92,8 @@ go run src/test/data/generate.go -contract 0x7ae1d57b58fa6411f32948314badd83583e
 ```
 
 ## RollCallExecutor
+
+![rollcalldao](./.github/assets/rollcalldao.svg)
 
 Manage Ethereum mainnet (Layer 1) treasury from a governance on an Optimistic Rollups (Layer 2). We move the DAO, minus the treasury, to Layer 2.
 

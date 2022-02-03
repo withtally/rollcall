@@ -1,30 +1,29 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.9;
-pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
 import "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import {OptimismTest} from "forge-optimism/OptimismTest.sol";
 
 import {Vm} from "./lib/Vm.sol";
-import {OVM_FakeCrossDomainMessenger} from "./OVM_FakeCrossDomainMessenger.sol";
 import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
 import {RollCallBridge} from "../RollCallBridge.sol";
-import {IRollCallGovernor} from "../interfaces/IRollCallGovernor.sol";
-import {SimpleRollCallGovernor} from "../extensions/SimpleRollCallGovernor.sol";
+import {IRollCallL1Governor} from "../interfaces/IRollCallL1Governor.sol";
+import {SimpleRollCallL1Governor} from "../extensions/SimpleRollCallL1Governor.sol";
 
 contract GovernanceERC20 is ERC20 {
-    constructor() public ERC20("Rollcall", "ROLLCALL") {}
+    constructor() ERC20("Rollcall", "ROLLCALL") {}
 
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 }
 
-contract RollCallGovernorSetup is DSTest {
+contract RollCallL1GovernorSetup is OptimismTest, DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     GovernanceERC20 internal token;
     RollCallBridge internal bridge;
-    SimpleRollCallGovernor internal governor;
+    SimpleRollCallL1Governor internal governor;
 
     address[] internal sources = new address[](1);
     bytes32[] internal slots = new bytes32[](1);
@@ -32,14 +31,12 @@ contract RollCallGovernorSetup is DSTest {
     function setUp() public virtual {
         token = new GovernanceERC20();
 
-        OVM_FakeCrossDomainMessenger cdm = new OVM_FakeCrossDomainMessenger();
-
-        bridge = new RollCallBridge(cdm);
+        bridge = new RollCallBridge(l1cdm);
 
         sources[0] = address(token);
         slots[0] = bytes32("1");
 
-        governor = new SimpleRollCallGovernor(
+        governor = new SimpleRollCallL1Governor(
             "rollcall",
             sources,
             slots,
@@ -48,7 +45,7 @@ contract RollCallGovernorSetup is DSTest {
     }
 }
 
-contract RollCallGovernor_Constructor is DSTest {
+contract RollCallL1Governor_Constructor is DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function testCannotConstructWithSourcesSlotsLengthMismatch() public {
@@ -57,11 +54,11 @@ contract RollCallGovernor_Constructor is DSTest {
         bytes32[] memory slots = new bytes32[](0);
 
         vm.expectRevert("governor: sources slots length mismatch");
-        new SimpleRollCallGovernor("rollcall", sources, slots, address(0));
+        new SimpleRollCallL1Governor("rollcall", sources, slots, address(0));
     }
 }
 
-contract RollCallGovernor_Metadata is RollCallGovernorSetup {
+contract RollCallL1Governor_Metadata is RollCallL1GovernorSetup {
     function testExpectInitialMetadata() public {
         for (uint256 i = 0; i < slots.length; i++) {
             assertEq(governor.slots()[i], slots[i], "slots mismatch");
