@@ -3,10 +3,9 @@ pragma solidity ^0.8.9;
 
 import "ds-test/test.sol";
 import "openzeppelin-contracts/token/ERC20/ERC20.sol";
-import {OptimismTest} from "forge-optimism/OptimismTest.sol";
+import {OptimismVm, OptimismTest} from "forge-optimism/Optimism.sol";
 
 import {Vm} from "./lib/Vm.sol";
-import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
 import {RollCallBridge} from "../RollCallBridge.sol";
 import {IRollCallL1Governor} from "../interfaces/IRollCallL1Governor.sol";
 import {SimpleRollCallL1Governor} from "../extensions/SimpleRollCallL1Governor.sol";
@@ -21,6 +20,8 @@ contract GovernanceERC20 is ERC20 {
 
 contract RollCallL1GovernorSetup is OptimismTest, DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+    OptimismVm internal ovm = new OptimismVm();
+
     GovernanceERC20 internal token;
     RollCallBridge internal bridge;
     SimpleRollCallL1Governor internal governor;
@@ -28,7 +29,7 @@ contract RollCallL1GovernorSetup is OptimismTest, DSTest {
     address[] internal sources = new address[](1);
     bytes32[] internal slots = new bytes32[](1);
 
-    function setUp() public virtual {
+    function setUp() public virtual override {
         token = new GovernanceERC20();
 
         bridge = new RollCallBridge(l1cdm);
