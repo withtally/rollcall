@@ -9,10 +9,5 @@ pushd $(dirname "$0")/..
 
 ARGS=${@:1}
 
-CDM=0x4361d0F75A0186C05f971c566dC6bEa5957483fD
-if [[ ${ROLLCALL_MAINNET} ]]; then
-    CDM=0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1
-fi
-
-RollCallExecutorAddress=$(deploy RollCallExecutor "$ARGS" --constructor-args "$CDM" "$TIMELOCK" "$DAO")
-echo "RollCallExecutor deployed to: $RollCallExecutorAddress"
+L1SimpleRollCallGovernorAddress=$(deploy L1SimpleRollCallGovernor "$ARGS" --constructor-args "$TOKEN" 1 45818 0 10)
+echo "L1SimpleRollCallGovernor deployed to: $L1SimpleRollCallGovernorAddress"
