@@ -9,7 +9,7 @@ import "openzeppelin-contracts/governance/extensions/GovernorVotesQuorumFraction
 import "openzeppelin-contracts/governance/extensions/GovernorTimelockControl.sol";
 import "openzeppelin-contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-contract RollCallGovernor is
+contract SimpleGovernor is
     Governor,
     GovernorSettings,
     GovernorCountingSimple,

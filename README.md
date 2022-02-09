@@ -13,7 +13,7 @@ https://github.com/gakonst/foundry#installation
 Run tests
 
 ```
-forge test --force --verbosity vvvv
+forge test --vvv
 ```
 
 ## RollCallVoter
