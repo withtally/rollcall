@@ -2,11 +2,13 @@
 pragma solidity ^0.8.9;
 
 import {ERC20} from "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import {ERC20Permit} from "openzeppelin-contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
+import {ERC20Votes} from "openzeppelin-contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
 
 import {IL2VotingERC20} from "./IL2VotingERC20.sol";
 
-contract L2VotingERC20 is IL2VotingERC20, ERC20 {
+contract L2VotingERC20 is ERC20, ERC20Permit, ERC20Votes, IL2VotingERC20 {
     address public l1Token;
     address public l2Bridge;
 
@@ -19,7 +21,7 @@ contract L2VotingERC20 is IL2VotingERC20, ERC20 {
         address _l1Token,
         string memory _name,
         string memory _symbol
-    ) ERC20(_name, _symbol) {
+    ) ERC20(_name, _symbol) ERC20Permit(_name) {
         l1Token = _l1Token;
         l2Bridge = Lib_PredeployAddresses.L2_STANDARD_BRIDGE;
     }
@@ -54,5 +56,27 @@ contract L2VotingERC20 is IL2VotingERC20, ERC20 {
         _burn(_from, _amount);
 
         emit Burn(_from, _amount);
+    }
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20, ERC20Votes) {
+        super._afterTokenTransfer(from, to, amount);
+    }
+
+    function _mint(address to, uint256 amount)
+        internal
+        override(ERC20, ERC20Votes)
+    {
+        super._mint(to, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+        internal
+        override(ERC20, ERC20Votes)
+    {
+        super._burn(account, amount);
     }
 }

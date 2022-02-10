@@ -38,7 +38,7 @@ contract Treasury is ERC721Holder, ERC1155Holder {
     /**
      * @dev Execute a call as the treasury.
      */
-    function call(
+    function execute(
         address target,
         uint256 value,
         bytes calldata data

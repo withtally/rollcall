@@ -7,17 +7,13 @@ import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 
 contract RollCallExecutor {
+    error UNDERLYING_CONTRACT_REVERTED();
+
     iOVM_CrossDomainMessenger private immutable _cdm;
     address public immutable l2dao;
-    address public immutable timelock;
 
-    constructor(
-        address cdm,
-        address timelock_,
-        address l2dao_
-    ) {
+    constructor(address cdm, address l2dao_) {
         _cdm = iOVM_CrossDomainMessenger(cdm);
-        timelock = timelock_;
         l2dao = l2dao_;
     }
 
@@ -26,8 +22,11 @@ contract RollCallExecutor {
      * execution payload source is the configured Layer 2 Governance.
      *
      */
-    function execute(bytes memory data) public payable onlyL2DAO {
-        Address.functionCallWithValue(payable(timelock), data, msg.value);
+    function execute(address target, bytes memory data) public onlyL2DAO {
+        (bool success, ) = target.call(data);
+        if (!success) {
+            revert UNDERLYING_CONTRACT_REVERTED();
+        }
     }
 
     /**

@@ -102,7 +102,16 @@ export GOVERNOR_ADDRESS=<GovernorAddress>
 
 In order to execute a proposal from Layer 2, we'll need to setup a contract to "receive" the transaction on Layer 1. For that, we can use the RollCallExecutor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
 
+```sh
+./deploy-exector.sh
+export EXECUTOR_ADDRESS=<ExectorAddress>
+```
 
+Next, we'll set the executor as pending admin of the treasury which we'll finalize using our Layer 2 DAO.
+
+```sh
+cast send $TREASURY_ADDRESS 'setPendingAdmin(address)' $EXECUTOR_ADDRESS --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC
+```
 
 ### Bridging tokens to Optimsim
 
@@ -130,4 +139,23 @@ echo https://kovan-optimistic.etherscan.io/token/$L2_TOKEN_ADDRESS
 
 #### Creating a proposal on L2
 
-Alright, we're getting close!
+Alright, we're getting close! Let's create a proposal for the Layer 2 Governance to take control of the Layer 1 treasury.
+
+For this, we're going to encode some calldata to pass the executor functions. There will be a few nested calls to make it all happen, lets walk through them:
+
+```sh
+# Get the calldata for the accept pending admin call, in this case, just the function selector
+cast calldata 'acceptPendingAdmin()'
+# Get the calldata for the executor, which will call the pending admin function to take control.
+cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')
+# Get the calldata for the Layer 2 CrossDomainBridge which will bridge our execution bundle to Layer 1.
+cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000
+```
+
+Alright, lets put it all together:
+
+```sh
+cast send "$GOVERNOR_ADDRESS" 'propose(address[],uint256[],bytes[],string)' '[0x4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000)]" 'Accept pending admin' --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC
+```
+
+cast send 0xd770a3f3f45a3661625f4a173828679fc893c28d 'propose(address[],uint256[],bytes[],string)' '[4200000000000000000000000000000000000007]' '[0]' '[3dbb202b000000000000000000000000102df41f25ad04cf4a97b96728f9dd0073212d33000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000841cff79cd000000000000000000000000f330b5d17cb34bbdb1453efbb8592c2c220e164700000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004709920c10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]' 'Accept pending admin' --private-key 020d80f7ed3351219c496dcc4c5bf8a981c207d531310c8d0992bdea8cf02be3 --rpc-url https://kovan.optimism.io/
