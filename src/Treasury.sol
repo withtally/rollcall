@@ -9,30 +9,30 @@ contract Treasury is ERC721Holder, ERC1155Holder {
     error UNAUTHORIZED();
     error UNDERLYING_CONTRACT_REVERTED();
 
-    address private _admin;
-    address private _pendingAdmin;
+    address public admin;
+    address public pendingAdmin;
 
     constructor() {
-        _admin = msg.sender;
+        admin = msg.sender;
     }
 
     /**
      * @dev Set the pending admin for the treasury;
      */
-    function setPendingAdmin(address pendingAdmin) external onlyAdmin {
-        _pendingAdmin = pendingAdmin;
+    function setPendingAdmin(address _pendingAdmin) external onlyAdmin {
+        pendingAdmin = _pendingAdmin;
     }
 
     /**
      * @dev Accept a pending admin for the treasury;
      */
     function acceptPendingAdmin() external {
-        if (msg.sender != _pendingAdmin) {
+        if (msg.sender != pendingAdmin) {
             revert UNAUTHORIZED();
         }
 
-        _admin = _pendingAdmin;
-        _pendingAdmin = address(0);
+        admin = pendingAdmin;
+        pendingAdmin = address(0);
     }
 
     /**
@@ -55,7 +55,7 @@ contract Treasury is ERC721Holder, ERC1155Holder {
     receive() external payable {}
 
     modifier onlyAdmin() {
-        if (msg.sender != _admin && msg.sender != address(this)) {
+        if (msg.sender != admin && msg.sender != address(this)) {
             revert UNAUTHORIZED();
         }
         _;

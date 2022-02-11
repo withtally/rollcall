@@ -35,7 +35,7 @@ Import your private key into metamask: https://metamask.zendesk.com/hc/en-us/art
 
 Get some testnet funds using the address generated above, be sure to "Drip additional networks": https://faucet.paradigm.xyz/
 
-If you need more funds, email me your address at tarrence@withtally.com
+If you need more funds, dm me your address at https://twitter.com/tarrenceva
 
 ### Setup env
 
@@ -175,3 +175,20 @@ Once it has passed, we can execute the proposal:
 ```sh
 cast send "$GOVERNOR_ADDRESS" 'execute(address[],uint256[],bytes[],bytes32)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 0x50d71468028f798bd6eb41e349f0919e2fbae974c3714d9343b822daf1541810 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
 ```
+
+Now our transaction is on its way back to mainnet. For Kovan, this takes 60 seconds. The final step will be executing the bridged transaction on mainnet:
+
+To finalize it, we can use Etherscans L2 to L1 Relay:
+
+https://kovan-optimistic.etherscan.io/messagerelayer
+
+Copy the transaction hash from above and click execute.
+
+Finally, we can verify that our treasury is now controlled by the executor which is controlled by the Layer 2 DAO.
+
+```sh
+cast call "$TREASURY_ADDRESS" 'admin()' --rpc-url="$KOVAN_RPC"
+```
+
+Whew. We're done! You now have a treasury on Layer 1 that you can manage with a DAO on Layer 2. This means proposal creation and voting can be done fast and cheap!
+
