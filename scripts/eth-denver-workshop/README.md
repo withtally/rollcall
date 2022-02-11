@@ -1,4 +1,6 @@
-# eth-denver-workshop
+# EthDenver Workshop
+
+In this exercise, we'll deploy a treasury to mainnet and a governor to optimism, then controls the mainnet treasury with the governance on optimism. The goal is to demonstrate a hybrid model where a protocol can exist on mainnet but be managed from a rollup, enabling cheaper participation in governance decisions.
 
 ## Setup
 
@@ -84,7 +86,7 @@ Wow. We're rich now.
 
 Next up, we want to deploy a Governor contract to Optimism that we can use to create and vote on proposals that will ultimately get executed on Layer 1.
 
-The first thing we'll need it a Layer 2 token to vote with. To support thing, we'll need to deploy a Layer 2 ERC20 token that supports voting and will hold bridged token state.
+The first thing we'll need is a Layer 2 token to vote with. To support this, we'll deploy a ERC20 voting token that will hold bridged token state.
 
 ```sh
 NAME="RollCallDAO" SYMBOL="DAO" ./deploy-l2-token.sh
@@ -100,20 +102,20 @@ export GOVERNOR_ADDRESS=<GovernorAddress>
 
 ### Setting up the governance bridge
 
-In order to execute a proposal from Layer 2, we'll need to setup a contract to "receive" the transaction on Layer 1. For that, we can use the RollCallExecutor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
+In order to execute a proposal from Layer 2, we'll setup a contract to "receive" the transaction on Layer 1. For that, we can use the RollCallExecutor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
 
 ```sh
 ./deploy-exector.sh
 export EXECUTOR_ADDRESS=<ExectorAddress>
 ```
 
-Next, we'll set the executor as pending admin of the treasury which we'll finalize using our Layer 2 DAO.
+Next, we'll set the executor as the pending admin of the treasury which we'll finalize using our Layer 2 DAO.
 
 ```sh
 cast send $TREASURY_ADDRESS 'setPendingAdmin(address)' $EXECUTOR_ADDRESS --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC
 ```
 
-### Bridging tokens to Optimsim
+### Bridging tokens to Optimism
 
 Now that we have token contracts on both sides, we can leverage the optimism bridge to send them from Layer 1 to Layer 2.
 
@@ -158,7 +160,7 @@ cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'accept
 cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000
 ```
 
-Alright, lets put it all together:
+Alright, let's put it all together:
 
 ```sh
 cast send "$GOVERNOR_ADDRESS" 'propose(address[],uint256[],bytes[],string)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 'Accept pending admin2' --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
