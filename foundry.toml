@@ -1,0 +1,13 @@
+[default]
+src = 'src'
+out = 'out'
+libs = ['lib']
+remappings = [
+    'ds-test/=lib/ds-test/src/',
+    'forge-optimism/=lib/forge-optimism/src/',
+    'forge-std/=lib/forge-optimism/lib/forge-std/src/',
+    'lib/=lib/forge-optimism/src/lib/',
+    'openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/',
+]
+
+# See more config options https://github.com/gakonst/foundry/tree/master/config

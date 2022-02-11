@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
-import {IERC165} from "openzeppelin-contracts/interfaces/IERC165.sol";
-
-interface IL2VotingERC20 is IERC20, IERC165 {
+interface IL2VotingERC20 {
     function l1Token() external returns (address);
 
     function mint(address _to, uint256 _amount) external;
