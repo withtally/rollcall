@@ -14,5 +14,5 @@ if [[ ${ROLLCALL_MAINNET} ]]; then
     CDM=0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1
 fi
 
-RollCallExecutorAddress=$(deploy RollCallExecutor "$ARGS" --constructor-args "$CDM" "$TIMELOCK" "$DAO")
-echo "RollCallExecutor deployed to: $RollCallExecutorAddress"
+ExecutorAddress=$(deploy Executor "$ARGS" --constructor-args "$CDM" "$TIMELOCK" "$DAO")
+echo "Executor deployed to: $ExecutorAddress"

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {RollCallL1Governor} from "../RollCallL1Governor.sol";
+import {L1Governor} from "../L1Governor.sol";
 
-contract SimpleRollCallL1Governor is RollCallL1Governor {
+contract SimpleL1Governor is L1Governor {
     struct Count {
         uint256 votesFor;
         uint256 votesAgainst;
@@ -16,7 +16,7 @@ contract SimpleRollCallL1Governor is RollCallL1Governor {
         address[] memory sources_,
         bytes32[] memory slots_,
         address bridge_
-    ) RollCallL1Governor(name_, sources_, slots_, bridge_) {}
+    ) L1Governor(name_, sources_, slots_, bridge_) {}
 
     function quorum(uint256 blockNumber)
         public

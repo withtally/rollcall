@@ -2,8 +2,8 @@
 
 RollCall is a set of cross chain governance solutions
 
-- **RollCallVoter**: Voting on mainnet governance proposals on a rollup.
-- **RollCallExecutor**: Manage mainnet treasury from a governance on a rollup.
+- **L2Voter**: Voting on mainnet governance proposals on a rollup.
+- **Executor**: Manage mainnet treasury from a governance on a rollup.
 
 ## Quickstart
 
@@ -16,7 +16,7 @@ Run tests
 forge test --vvv
 ```
 
-## RollCallVoter
+## L2Voter
 
 ![rollcallvoter](./.github/assets/rollcallvoter.svg)
 
@@ -64,7 +64,7 @@ To do so, Layer 1 governance's implementation provides a set of weight mappings 
 
 ### Deployment
 
-Deploy RollCallBridge and RollCallGovernor
+Deploy Bridge and RollCallGovernor
 
 ```bash
 ROLLCALL_MAINNET=0 \
@@ -73,12 +73,12 @@ ROLLCALL_SLOTS=[0x00000000000000000000000000000000000000000000000000000000000000
 ./scripts/deploy-voter-base.sh --rpc-url ...
 ```
 
-Deploy RollCallVoter to Optimism
+Deploy L2Voter to Optimism
 
 ```
 > ./scripts/deploy-voter-rollup.sh --rpc-url ...
 ...
-ROLLCALL_BRIDGE=<0xADDRESS FROM ABOVE> RollCallVoter deployed to: 0x1ea2030f42718790adbd2a9448ea6ae2c6e2b06e
+ROLLCALL_BRIDGE=<0xADDRESS FROM ABOVE> L2Voter deployed to: 0x1ea2030f42718790adbd2a9448ea6ae2c6e2b06e
 ```
 
 ### Generating Storage Proofs
@@ -91,7 +91,7 @@ Run the generate script with the desired contract, voter address, and mapping st
 go run src/test/data/generate.go -contract 0x7ae1d57b58fa6411f32948314badd83583ee0e8c -voter 0xba740c9035fF3c24A69e0df231149c9cd12BAe07 -slot 0
 ```
 
-## RollCallExecutor
+## Executor
 
 ![rollcalldao](./.github/assets/rollcalldao.svg)
 

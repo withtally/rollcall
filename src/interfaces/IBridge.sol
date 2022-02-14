@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.0 (governance/IRollCallBridge.sol)
+// OpenZeppelin Contracts v4.4.0 (governance/IBridge.sol)
 
 pragma solidity ^0.8.9;
 
 /**
- * @dev Interface of the {RollCallBridge} core.
+ * @dev Interface of the {Bridge} core.
  */
-abstract contract IRollCallBridge {
+abstract contract IBridge {
     function propose(bytes32 id) external virtual;
 
     function queue(

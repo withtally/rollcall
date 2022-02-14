@@ -9,5 +9,5 @@ pushd $(dirname "$0")/..
 
 ARGS=${@:1}
 
-RollCallVoterAddress=$(deploy src/RollCallVoter.sol:RollCallVoter "$ARGS" --constructor-args "$ROLLCALL_BRIDGE")
-echo "RollCallVoter deployed to: $RollCallVoterAddress"
+L2VoterAddress=$(deploy src/L2Voter.sol:L2Voter "$ARGS" --constructor-args "$ROLLCALL_BRIDGE")
+echo "L2Voter deployed to: $L2VoterAddress"

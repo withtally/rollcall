@@ -5,11 +5,11 @@ pragma experimental ABIEncoderV2;
 import {iOVM_CrossDomainMessenger} from "forge-optimism/interfaces/iOVM_CrossDomainMessenger.sol";
 import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
-import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
-import {IRollCallL1Governor} from "./interfaces/IRollCallL1Governor.sol";
-import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
+import {IBridge} from "./interfaces/IBridge.sol";
+import {IL1Governor} from "./interfaces/IL1Governor.sol";
+import {IL2Voter} from "./interfaces/IL2Voter.sol";
 
-contract RollCallBridge is IRollCallBridge, Ownable {
+contract Bridge is IBridge, Ownable {
     iOVM_CrossDomainMessenger private immutable _cdm;
     address public voter;
 
@@ -22,11 +22,11 @@ contract RollCallBridge is IRollCallBridge, Ownable {
     }
 
     function propose(bytes32 id) external override {
-        IRollCallL1Governor governor = IRollCallL1Governor(msg.sender);
-        IRollCallL1Governor.Proposal memory proposal = governor.proposal(id);
+        IL1Governor governor = IL1Governor(msg.sender);
+        IL1Governor.Proposal memory proposal = governor.proposal(id);
 
         bytes memory message = abi.encodeWithSelector(
-            IRollCallVoter.propose.selector,
+            IL2Voter.propose.selector,
             msg.sender,
             id,
             governor.sources(),
@@ -44,7 +44,7 @@ contract RollCallBridge is IRollCallBridge, Ownable {
         bytes32 id,
         uint256[10] calldata votes
     ) external override onlyVoter {
-        IRollCallL1Governor(governor).queue(id, votes);
+        IL1Governor(governor).queue(id, votes);
     }
 
     /**

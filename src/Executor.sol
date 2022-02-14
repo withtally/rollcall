@@ -6,7 +6,7 @@ import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
 
-contract RollCallExecutor {
+contract Executor {
     error UNDERLYING_CONTRACT_REVERTED();
 
     iOVM_CrossDomainMessenger private immutable _cdm;

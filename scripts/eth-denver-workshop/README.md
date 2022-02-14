@@ -2,6 +2,29 @@
 
 In this exercise, we'll deploy a treasury to mainnet and a governor to optimism, then controls the mainnet treasury with the governance on optimism. The goal is to demonstrate a hybrid model where a protocol can exist on mainnet but be managed from a rollup, enabling cheaper participation in governance decisions.
 
+## Sequence Diagram
+
+```
+┌──────┐                                         ┌──────────┐     ┌───────────┐
+│Client│                                         │L2Governor│     │L1 Executor│
+└──┬───┘                                         └────┬─────┘     └───────────┘
+   │                                                  │                 │
+   │ propose(...)                                     │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │ vote (...)                                       │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │ queue (...)                                      │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │ execute(...)                                     │                 │
+   ├─────────────────────────────────────────────────►│                 │
+   │                                                  │                 │
+   │                                                  │ bridge execute  │
+   │                                                  │────────────────►│
+```
+
 ## Setup
 
 ### Install foundry
@@ -39,7 +62,7 @@ Get some testnet funds using the address generated above, be sure to "Drip addit
 
 If you need more funds, dm me your address at https://twitter.com/tarrenceva
 
-### Setup env
+### Setup environment
 
 ```sh
 export KOVAN_RPC="https://eth-kovan.alchemyapi.io/v2/dLtG6qAIvETZ7OKf4hoILCfKTN3rsRaK"
@@ -53,16 +76,18 @@ Now we're ready!
 Deploy the `L1VotingERC20` contract. This contract implemented [ERC20Votes.sol](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/ERC20Votes.sol), which enables onchain governance. It is necessary to avoid several different governance attacks.
 
 ```sh
-NAME="RollCallDAO" SYMBOL="DAO" ./deploy-token.sh
+NAME="RollCallDAO" SYMBOL="DAO" ./deploy-l1-token.sh
 export L1_TOKEN_ADDRESS=<L1VotingERC20Address>
 ```
+
+## Workshop
 
 ### Deploying the treasury
 
 Next, we'll deploy a treasury to manage the DAOs assets. The treasury is a simple smart contract that holds our assets and can be controlled by the DAO.
 
 ```sh
-./deploy-treasury.sh
+./deploy-l1-treasury.sh
 export TREASURY_ADDRESS=<TreasuryAddress>
 ```
 
@@ -96,16 +121,16 @@ export L2_TOKEN_ADDRESS=<L2VotingERC20Address>
 Now we can deploy our Governance which will be controlled by the bridged ERC20 tokens:
 
 ```sh
-./deploy-governor.sh
+./deploy-l2-governor.sh
 export GOVERNOR_ADDRESS=<GovernorAddress>
 ```
 
 ### Setting up the governance bridge
 
-In order to execute a proposal from Layer 2, we'll setup a contract to "receive" the transaction on Layer 1. For that, we can use the RollCallExecutor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
+In order to execute a proposal from Layer 2, we'll setup a contract to "receive" the transaction on Layer 1. For that, we can use the Executor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
 
 ```sh
-./deploy-exector.sh
+./deploy-l1-exector.sh
 export EXECUTOR_ADDRESS=<ExectorAddress>
 ```
 
@@ -194,3 +219,26 @@ cast call "$TREASURY_ADDRESS" 'admin()' --rpc-url="$KOVAN_RPC"
 
 Whew. We're done! You now have a treasury on Layer 1 that you can manage with a DAO on Layer 2. This means proposal creation and voting can be done fast and cheap!
 
+## Follow up
+
+### Layer 2 Treasury
+
+As a follow up exercise, lets use what we've learned to deploy a Layer 2 Treasury that can be managed by the governor and transfer our Layer 1 tokens to it.
+
+#### Deploying a Layer 2 Treasury
+
+Duplicate the `deploy-l1-treasury.sh`, creating `deploy-l2-treasury.sh`, and modify it to deploy to Layer 2.
+
+#### Configure ownership
+
+First, set the pending admin of the layer 2 treasury to `$GOVERNOR_ADDRESS`. Then, create a proposal for governor to accept the admin. This proposal will be similar to [the previous proposal](https://github.com/withtally/rollcall/tree/main/scripts/eth-denver-workshop#creating-a-proposal-on-l2) that took ownership of the layer 1 treasury, however, it doesn't need to go through the bridge.
+
+#### Bridging the tokens
+
+Next, bridge the layer 1 treasury tokens to layer 2. In order to do this, we can create a proposal, similar to the original accept admin proposal for the layer 1 treasury, but with [two execution payloads that approve and then bridge the tokens to our layer 2 treasury](https://github.com/withtally/rollcall/tree/main/scripts/eth-denver-workshop#bridging-tokens-to-optimism).
+
+## NFT Airdrop
+
+Thanks for joining us! As a reward, we're giving out a free Optimism based NFT. DM me your address at https://twitter.com/tarrenceva and I'll send you one!
+
+![tallyxoptimsim](../../.github/assets/tallyxoptimism.gif)

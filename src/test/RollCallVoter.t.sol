@@ -9,10 +9,10 @@ import {Vm} from "./lib/Vm.sol";
 import {OVM_FakeL1BlockNumber} from "./OVM_FakeL1BlockNumber.sol";
 import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
 
-import {RollCallBridge} from "../RollCallBridge.sol";
-import {IRollCallL1Governor} from "../interfaces/IRollCallL1Governor.sol";
-import {IRollCallVoter} from "../interfaces/IRollCallVoter.sol";
-import {RollCallVoter} from "../RollCallVoter.sol";
+import {Bridge} from "../Bridge.sol";
+import {IL1Governor} from "../interfaces/IL1Governor.sol";
+import {IL2Voter} from "../interfaces/IL2Voter.sol";
+import {L2Voter} from "../L2Voter.sol";
 
 contract GovernanceERC20 is ERC20 {
     constructor() ERC20("Rollcall", "ROLLCALL") {}
@@ -22,19 +22,19 @@ contract GovernanceERC20 is ERC20 {
     }
 }
 
-contract RollCallL1Governor {
+contract L1Governor {
     bytes32 public queueId;
     uint256[10] public queueVotes;
 
-    RollCallBridge internal bridge;
+    Bridge internal bridge;
 
-    mapping(bytes32 => IRollCallL1Governor.Proposal) internal proposals;
+    mapping(bytes32 => IL1Governor.Proposal) internal proposals;
 
     constructor(address bridge_) {
-        bridge = RollCallBridge(bridge_);
+        bridge = Bridge(bridge_);
     }
 
-    function propose(bytes32 id, IRollCallL1Governor.Proposal memory p)
+    function propose(bytes32 id, IL1Governor.Proposal memory p)
         external
     {
         proposals[id] = p;
@@ -45,7 +45,7 @@ contract RollCallL1Governor {
         public
         view
         virtual
-        returns (IRollCallL1Governor.Proposal memory)
+        returns (IL1Governor.Proposal memory)
     {
         return proposals[id];
     }
@@ -72,8 +72,8 @@ contract RollCallL1Governor {
     }
 }
 
-contract RollCallVoterTester is RollCallVoter {
-    constructor(address bridge_) public RollCallVoter(bridge_) {}
+contract L2VoterTester is L2Voter {
+    constructor(address bridge_) public L2Voter(bridge_) {}
 
     function hashTypedDataV4(bytes32 id, uint256 support)
         public
@@ -88,33 +88,33 @@ contract RollCallVoterTester is RollCallVoter {
     }
 }
 
-contract RollCallVoterSetup is OptimismTest, DSTest {
+contract L2VoterSetup is OptimismTest, DSTest {
     Vm internal vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     OptimismVm internal ovm = new OptimismVm();
     GovernanceERC20 internal token;
-    RollCallBridge internal bridge;
-    RollCallVoterTester internal voter;
-    RollCallL1Governor internal governor;
+    Bridge internal bridge;
+    L2VoterTester internal voter;
+    L1Governor internal governor;
 
     function setUp() public virtual override {
         super.setUp();
 
-        bridge = new RollCallBridge(l1cdm);
+        bridge = new Bridge(l1cdm);
 
-        voter = new RollCallVoterTester(address(bridge));
+        voter = new L2VoterTester(address(bridge));
 
-        governor = new RollCallL1Governor(address(bridge));
+        governor = new L1Governor(address(bridge));
 
         bridge.setVoter(address(voter));
     }
 }
 
-contract RollCallVoter_Proposing is RollCallVoterSetup {
+contract L2Voter_Proposing is L2VoterSetup {
     function testCanPropose() public {
         uint64 ts = uint64(block.timestamp);
         governor.propose(
             bytes32(uint256(1)),
-            IRollCallL1Governor.Proposal({
+            IL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: ts,
                 end: ts + 100,
@@ -129,7 +129,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
         uint64 ts = uint64(block.timestamp);
         governor.propose(
             id,
-            IRollCallL1Governor.Proposal({
+            IL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: ts,
                 end: ts + 100,
@@ -151,7 +151,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
         uint64 n = uint64(block.timestamp) + 10;
         governor.propose(
             id,
-            IRollCallL1Governor.Proposal({
+            IL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: n,
                 end: n + 100,
@@ -182,7 +182,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
     //     vm.expectRevert("bridge: proposal end before now");
     //     governor.propose(
     //         1,
-    //         IRollCallL1Governor.Proposal({
+    //         IL1Governor.Proposal({
     //             snapshot: blockhash(block.number),
     //             root: hex"4d65424d564e39f92e231c095100877ebe8bac54776632b75be295d983746127",
     //             start: ts,
@@ -194,7 +194,7 @@ contract RollCallVoter_Proposing is RollCallVoterSetup {
     // }
 }
 
-contract RollCallVoter_State is RollCallVoterSetup {
+contract L2Voter_State is L2VoterSetup {
     bytes32 private id = bytes32(uint256(1));
     uint64 internal bn = uint64(block.timestamp);
     uint64 internal start = bn + 10;
@@ -205,7 +205,7 @@ contract RollCallVoter_State is RollCallVoterSetup {
 
         governor.propose(
             bytes32(uint256(1)),
-            IRollCallL1Governor.Proposal({
+            IL1Governor.Proposal({
                 snapshot: blockhash(block.number),
                 start: start,
                 end: end,
@@ -219,27 +219,27 @@ contract RollCallVoter_State is RollCallVoterSetup {
         ovm.warp(1);
         assertEq(
             uint256(voter.state(address(governor), id)),
-            uint256(IRollCallVoter.ProposalState.Pending),
+            uint256(IL2Voter.ProposalState.Pending),
             "proposal not pending"
         );
 
         ovm.warp(start);
         assertEq(
             uint256(voter.state(address(governor), id)),
-            uint256(IRollCallVoter.ProposalState.Active),
+            uint256(IL2Voter.ProposalState.Active),
             "proposal not active"
         );
 
         ovm.warp(end);
         assertEq(
             uint256(voter.state(address(governor), id)),
-            uint256(IRollCallVoter.ProposalState.Ended)
+            uint256(IL2Voter.ProposalState.Ended)
         );
 
         voter.queue(address(governor), id, 1e6);
         assertEq(
             uint256(voter.state(address(governor), id)),
-            uint256(IRollCallVoter.ProposalState.Queued)
+            uint256(IL2Voter.ProposalState.Queued)
         );
 
         vm.expectRevert("rollcall: proposal vote doesnt exist");
@@ -247,7 +247,7 @@ contract RollCallVoter_State is RollCallVoterSetup {
     }
 }
 
-contract RollCallVoter_Voting is RollCallVoterSetup {
+contract L2Voter_Voting is L2VoterSetup {
     bytes32 private id = bytes32(uint256(1));
     uint64 internal bn = uint64(block.number);
     uint64 internal start = bn + 10;
@@ -260,7 +260,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
 
         governor.propose(
             id,
-            IRollCallL1Governor.Proposal({
+            IL1Governor.Proposal({
                 snapshot: hex"d077c85d25408ee51a05118a39ccc8ab0ae80db65f60a18ea0209960bcfc9e4e",
                 start: start,
                 end: end,
@@ -278,7 +278,7 @@ contract RollCallVoter_Voting is RollCallVoterSetup {
     }
 
     function testProposalState() public {
-        RollCallVoter.Proposal memory proposal = voter.proposal(
+        L2Voter.Proposal memory proposal = voter.proposal(
             address(governor),
             id
         );
