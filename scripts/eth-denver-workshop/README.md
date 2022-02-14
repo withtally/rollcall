@@ -1,6 +1,6 @@
 # EthDenver Workshop
 
-In this exercise, we'll deploy a treasury to mainnet and a governor to optimism, then controls the mainnet treasury with the governance on optimism. The goal is to demonstrate a hybrid model where a protocol can exist on mainnet but be managed from a rollup, enabling cheaper participation in governance decisions.
+In this exercise, we'll deploy a treasury [timelock](https://docs.openzeppelin.com/contracts/4.x/api/governance#TimelockController) contract to mainnet and a [OpenZeppelin Governor DAO](https://docs.openzeppelin.com/contracts/4.x/api/governance) contract to [Optimism](https://www.optimism.io/). We will then control the mainnet treasury with the Governor on Optimism. The goal is to demonstrate a hybrid model where a protocol can exist on mainnet but be managed from a rollup, enabling cheaper participation in governance decisions.
 
 ## Sequence Diagram
 
