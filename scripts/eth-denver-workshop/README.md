@@ -25,7 +25,7 @@ In this exercise, we'll deploy a treasury to mainnet and a governor to optimism,
    │                                                  │────────────────►│
 ```
 
-## Setup
+## Getting Started
 
 ### Install foundry
 
@@ -41,10 +41,30 @@ Then, in a new terminal session or after reloading your `PATH`, run it to get th
 foundryup
 ```
 
-Finally, install dependencies:
+### Setup Exercise
+
+Clone this repo
 
 ```sh
+git clone git@github.com:withtally/rollcall.git
+# install dependencies
 forge install
+# move to workshop folder
+cd scripts/eth-denver-workshop/
+```
+
+#### `libusb` error when running `forge`/`cast`
+
+If you are using the binaries as released, you may see the following error on MacOS:
+
+```
+dyld: Library not loaded: /usr/local/opt/libusb/lib/libusb-1.0.0.dylib
+```
+
+In order to fix this, you must install `libusb` like so:
+
+```sh
+brew install libusb
 ```
 
 ### Create a wallet
@@ -143,7 +163,7 @@ export EXECUTOR_ADDRESS=<ExectorAddress>
 Next, we'll set the executor as the pending admin of the treasury which we'll finalize using our Layer 2 DAO.
 
 ```sh
-cast send $TREASURY_ADDRESS 'setPendingAdmin(address)' $EXECUTOR_ADDRESS --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC
+cast send $TREASURY_ADDRESS 'setPendingAdmin(address)' $EXECUTOR_ADDRESS --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC --confirmations 1
 ```
 
 ### Bridging tokens to Optimism
@@ -153,13 +173,13 @@ Now that we have token contracts on both sides, we can leverage the optimism bri
 First, we'll approve the Layer 1 Bridge to access our tokens:
 
 ```sh
-cast send "$L1_TOKEN_ADDRESS" 'approve(address,uint256)' 0x22F24361D548e5FaAfb36d1437839f080363982B 1000000000000000000000000 --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC
+cast send "$L1_TOKEN_ADDRESS" 'approve(address,uint256)' 0x22F24361D548e5FaAfb36d1437839f080363982B 1000000000000000000000000 --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC --confirmations 1
 ```
 
 Next, we'll bridge 'em over:
 
 ```sh
-cast send 0x22F24361D548e5FaAfb36d1437839f080363982B 'depositERC20(address,address,uint256,uint32,bytes)' "$L1_TOKEN_ADDRESS" "$L2_TOKEN_ADDRESS" 1000000000000000000000000 2000000 0x --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC
+cast send 0x22F24361D548e5FaAfb36d1437839f080363982B 'depositERC20(address,address,uint256,uint32,bytes)' "$L1_TOKEN_ADDRESS" "$L2_TOKEN_ADDRESS" 1000000000000000000000000 2000000 0x --private-key $ETH_PRIVATE_KEY --rpc-url $KOVAN_RPC --confirmations 1
 ```
 
 Give it a couple mins, then you should be able to see them show up on the other side:
@@ -200,7 +220,7 @@ cast send "$GOVERNOR_ADDRESS" 'propose(address[],uint256[],bytes[],string)' '[42
 Get the proposal id:
 
 ```sh
-cast call "$GOVERNOR_ADDRESS" 'hashProposal(address[],uint256[],bytes[],string)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 'Accept pending admin' --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan
+cast call "$GOVERNOR_ADDRESS" 'hashProposal(address[],uint256[],bytes[],bytes32)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" $(cast keccak 'Accept pending admin') --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan)
 ```
 
 Next we'll vote to support the proposal:
