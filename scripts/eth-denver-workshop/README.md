@@ -239,3 +239,6 @@ Next, bridge the layer 1 treasury tokens to layer 2. In order to do this, we can
 
 ## NFT Airdrop
 
+Thanks for joining us! As a reward, we're giving out a free Optimism based NFT. DM me your address at https://twitter.com/tarrenceva and I'll send you one!
+
+![tallyxoptimsim](../../.github/assets/tallyxoptimism.gif)
