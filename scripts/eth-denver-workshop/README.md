@@ -102,7 +102,7 @@ export GOVERNOR_ADDRESS=<GovernorAddress>
 
 ### Setting up the governance bridge
 
-In order to execute a proposal from Layer 2, we'll setup a contract to "receive" the transaction on Layer 1. For that, we can use the RollCallExecutor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
+In order to execute a proposal from Layer 2, we'll setup a contract to "receive" the transaction on Layer 1. For that, we can use the Executor. This contract will own the treasury and make sure that only proposals passed by the Layer 2 governance can interact with it.
 
 ```sh
 ./deploy-exector.sh

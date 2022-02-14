@@ -10,7 +10,7 @@ import {IERC165} from "../../lib/openzeppelin-contracts/contracts/interfaces/IER
  *
  * _Available since v4.3._
  */
-abstract contract IRollCallL1Governor is IERC165 {
+abstract contract IL1Governor is IERC165 {
     struct Proposal {
         bytes32 snapshot;
         uint64 start;

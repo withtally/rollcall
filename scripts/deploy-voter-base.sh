@@ -14,8 +14,8 @@ if [[ ${ROLLCALL_MAINNET} ]]; then
     CDM=0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1
 fi
 
-RollCallBridgeAddress=$(deploy RollCallBridge "$ARGS" --constructor-args "$CDM")
-echo "RollCallBridge deployed to: $RollCallBridgeAddress"
+BridgeAddress=$(deploy Bridge "$ARGS" --constructor-args "$CDM")
+echo "Bridge deployed to: $BridgeAddress"
 
-SimpleRollCallGovernorAddress=$(deploy SimpleRollCallGovernor "$ARGS" --constructor-args "PaperGovernor" --constructor-args "$ROLLCALL_SOURCES" --constructor-args "$ROLLCALL_SLOTS" --constructor-args $RollCallBridgeAddress)
+SimpleRollCallGovernorAddress=$(deploy SimpleRollCallGovernor "$ARGS" --constructor-args "PaperGovernor" --constructor-args "$ROLLCALL_SOURCES" --constructor-args "$ROLLCALL_SLOTS" --constructor-args $BridgeAddress)
 echo "SimpleRollCallGovernor deployed to: $SimpleRollCallGovernorAddress"

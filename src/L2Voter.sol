@@ -9,9 +9,9 @@ import {IERC165} from "../lib/openzeppelin-contracts/contracts/interfaces/IERC16
 import {Address} from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 
 import {iOVM_CrossDomainMessenger} from "./interfaces/iOVM_CrossDomainMessenger.sol";
-import {IRollCallBridge} from "./interfaces/IRollCallBridge.sol";
-import {IRollCallL1Governor} from "./interfaces/IRollCallL1Governor.sol";
-import {IRollCallVoter} from "./interfaces/IRollCallVoter.sol";
+import {IBridge} from "./interfaces/IBridge.sol";
+import {IL1Governor} from "./interfaces/IL1Governor.sol";
+import {IL2Voter} from "./interfaces/IL2Voter.sol";
 
 import {iOVM_L1BlockNumber} from "./interfaces/iOVM_L1BlockNumber.sol";
 import {Lib_PredeployAddresses} from "./lib/Lib_PredeployAddresses.sol";
@@ -28,7 +28,7 @@ import {StateProofVerifier as Verifier} from "./lib/StateProofVerifier.sol";
  * - Additionanly, the {votingPeriod} must also be implemented
  *
  */
-contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
+contract L2Voter is ERC165, EIP712, IL2Voter {
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
 
@@ -67,26 +67,26 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         returns (bool)
     {
         return
-            interfaceId == type(IRollCallVoter).interfaceId ||
+            interfaceId == type(IL2Voter).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
     /**
-     * @dev See {IRollCallVoter-name}.
+     * @dev See {IL2Voter-name}.
      */
     function name() public view virtual override returns (string memory) {
         return "rollcallvoter";
     }
 
     /**
-     * @dev See {IRollCallVoter-version}.
+     * @dev See {IL2Voter-version}.
      */
     function version() public view virtual override returns (string memory) {
         return "1";
     }
 
     /**
-     * @dev See {IRollCallVoter-state}.
+     * @dev See {IL2Voter-state}.
      */
     function state(address governor, bytes32 id)
         public
@@ -194,7 +194,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
         _proposals[governor][id].queue = true;
 
         bytes memory message = abi.encodeWithSelector(
-            IRollCallBridge.queue.selector,
+            IBridge.queue.selector,
             governor,
             id,
             _votes[governor][id]
@@ -216,7 +216,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev See {IRollCallVoter-castVote}.
+     * @dev See {IL2Voter-castVote}.
      */
     function castVote(
         bytes32 id,
@@ -230,7 +230,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev See {IRollCallVoter-castVoteWithReason}.
+     * @dev See {IL2Voter-castVoteWithReason}.
      */
     function castVoteWithReason(
         bytes32 id,
@@ -253,7 +253,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     }
 
     /**
-     * @dev See {IRollCallVoter-castVoteBySig}.
+     * @dev See {IL2Voter-castVoteBySig}.
      */
     function castVoteBySig(
         bytes32 id,
@@ -279,7 +279,7 @@ contract RollCallVoter is ERC165, EIP712, IRollCallVoter {
     /**
      * @dev Internal vote casting mechanism: Check that the vote is pending and that it has not been cast yet.
      *
-     * Emits a {IRollCallVoter-VoteCast} event.
+     * Emits a {IL2Voter-VoteCast} event.
      */
     function _castVote(
         bytes32 id,

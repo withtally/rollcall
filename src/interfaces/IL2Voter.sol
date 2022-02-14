@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.0 (governance/IRollCallVoter.sol)
+// OpenZeppelin Contracts v4.4.0 (governance/IL2Voter.sol)
 
 pragma solidity ^0.8.9;
 
 import {IERC165} from "../../lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol";
 
-import {IRollCallL1Governor} from "./IRollCallL1Governor.sol";
+import {IL1Governor} from "./IL1Governor.sol";
 
 /**
- * @dev Interface of the {RollCallVoter} core.
+ * @dev Interface of the {L2Voter} core.
  *
  * _Available since v4.3._
  */
-abstract contract IRollCallVoter is IERC165 {
+abstract contract IL2Voter is IERC165 {
     enum ProposalState {
         Pending,
         Active,
