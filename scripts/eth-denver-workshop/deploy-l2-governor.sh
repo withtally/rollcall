@@ -9,5 +9,5 @@ pushd $(dirname "$0")/../..
 
 ARGS=${@:1}
 
-SimpleGovernorAddress=$(deploy SimpleGovernor "$ARGS" --constructor-args "$L2_TOKEN_ADDRESS" 1 30 0 10 --rpc-url "$OPTIMISM_KOVAN_RPC" --private-key "$ETH_PRIVATE_KEY")
-echo "SimpleGovernor deployed to: $SimpleGovernorAddress"
+SimpleL2GovernorAddress=$(deploy SimpleL2Governor "$ARGS" --constructor-args "$L2_TOKEN_ADDRESS" 1 300 0 10 --rpc-url "$OPTIMISM_KOVAN_RPC" --private-key "$ETH_PRIVATE_KEY")
+echo "SimpleL2Governor deployed to: $SimpleL2GovernorAddress"

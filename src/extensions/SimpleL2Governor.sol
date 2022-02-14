@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "openzeppelin-contracts/governance/Governor.sol";
-import "openzeppelin-contracts/governance/extensions/GovernorSettings.sol";
-import "openzeppelin-contracts/governance/extensions/GovernorCountingSimple.sol";
-import "openzeppelin-contracts/governance/extensions/GovernorVotes.sol";
-import "openzeppelin-contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "openzeppelin-contracts/governance/extensions/GovernorTimelockControl.sol";
 import "openzeppelin-contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-contract SimpleGovernor is
-    Governor,
-    GovernorSettings,
-    GovernorCountingSimple,
-    GovernorVotes,
-    GovernorVotesQuorumFraction
+import {L2Governor} from "../standards/L2Governor.sol";
+import {L2GovernorSettings} from "../standards/L2GovernorSettings.sol";
+import {L2GovernorCountingSimple} from "../standards/L2GovernorCountingSimple.sol";
+import {L2GovernorVotes} from "../standards/L2GovernorVotes.sol";
+import {L2GovernorVotesQuorumFraction} from "../standards/L2GovernorVotesQuorumFraction.sol";
+
+contract SimpleL2Governor is
+    L2Governor,
+    L2GovernorSettings,
+    L2GovernorCountingSimple,
+    L2GovernorVotes,
+    L2GovernorVotesQuorumFraction
 {
     constructor(
         ERC20Votes _token,
@@ -23,10 +24,10 @@ contract SimpleGovernor is
         uint256 _proposalThreshold,
         uint256 _quorumNumeratorValue
     )
-        Governor("RollCallGovernor")
-        GovernorSettings(_votingDelay, _votingPeriod, _proposalThreshold)
-        GovernorVotes(_token)
-        GovernorVotesQuorumFraction(_quorumNumeratorValue)
+        L2Governor("RollCallGovernor")
+        L2GovernorSettings(_votingDelay, _votingPeriod, _proposalThreshold)
+        L2GovernorVotes(_token)
+        L2GovernorVotesQuorumFraction(_quorumNumeratorValue)
     {}
 
     // The following functions are overrides required by Solidity.
@@ -34,7 +35,7 @@ contract SimpleGovernor is
     function votingDelay()
         public
         view
-        override(IGovernor, GovernorSettings)
+        override(IGovernor, L2GovernorSettings)
         returns (uint256)
     {
         return super.votingDelay();
@@ -43,7 +44,7 @@ contract SimpleGovernor is
     function votingPeriod()
         public
         view
-        override(IGovernor, GovernorSettings)
+        override(IGovernor, L2GovernorSettings)
         returns (uint256)
     {
         return super.votingPeriod();
@@ -52,7 +53,7 @@ contract SimpleGovernor is
     function quorum(uint256 blockNumber)
         public
         view
-        override(IGovernor, GovernorVotesQuorumFraction)
+        override(IGovernor, L2GovernorVotesQuorumFraction)
         returns (uint256)
     {
         return super.quorum(blockNumber);
@@ -61,7 +62,7 @@ contract SimpleGovernor is
     function getVotes(address account, uint256 blockNumber)
         public
         view
-        override(IGovernor, GovernorVotes)
+        override(IGovernor, L2GovernorVotes)
         returns (uint256)
     {
         return super.getVotes(account, blockNumber);
@@ -70,7 +71,7 @@ contract SimpleGovernor is
     function proposalThreshold()
         public
         view
-        override(Governor, GovernorSettings)
+        override(L2Governor, L2GovernorSettings)
         returns (uint256)
     {
         return super.proposalThreshold();

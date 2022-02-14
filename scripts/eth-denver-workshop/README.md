@@ -194,13 +194,19 @@ cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calld
 Alright, let's put it all together:
 
 ```sh
-cast send "$GOVERNOR_ADDRESS" 'propose(address[],uint256[],bytes[],string)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 'Accept pending admin2' --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
+cast send "$GOVERNOR_ADDRESS" 'propose(address[],uint256[],bytes[],string)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 'Accept pending admin' --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
+```
+
+Get the proposal id:
+
+```sh
+cast call "$GOVERNOR_ADDRESS" 'hashProposal(address[],uint256[],bytes[],string)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 'Accept pending admin' --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan
 ```
 
 Next we'll vote to support the proposal:
 
 ```sh
-cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' 95544214720815152929444174016589383073151259375028051830575229688528277408605 1 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
+cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' <proposal hash> 1 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
 ```
 
 Once it has passed, we can execute the proposal:
