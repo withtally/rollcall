@@ -41,6 +41,12 @@ Then, in a new terminal session or after reloading your `PATH`, run it to get th
 foundryup
 ```
 
+Finally, install dependencies:
+
+```sh
+forge install
+```
+
 ### Create a wallet
 
 ```sh
