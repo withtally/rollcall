@@ -76,7 +76,7 @@ Address: <public key>
 Private Key: <private key>
 ```
 
-Replace `<public key>` and `<private key>` with the output of the `cast wallet new` command above:
+Replace `<public key>` and `<private key>` with the output of the `cast wallet new` command above. Be sure to remove the trailing period.
 
 ```sh
 # Export private key to simplify the scripts
@@ -279,7 +279,7 @@ As a follow up exercise, lets use what we've learned to deploy a Layer 2 Treasur
 
 #### Deploying a Layer 2 Treasury
 
-Duplicate the `deploy-l1-treasury.sh`, creating `deploy-l2-treasury.sh`, and modify it to deploy to Layer 2.
+Duplicate the `deploy-l1-treasury.sh`, creating `deploy-l2-treasury.sh`, and modify the RPC to point to optimism.
 
 #### Configure ownership
 
@@ -291,6 +291,6 @@ Next, bridge the layer 1 treasury tokens to layer 2. In order to do this, we can
 
 ## NFT Airdrop
 
-Thanks for joining us! As a reward, we're giving out a free Optimism based NFT. DM me your address at https://twitter.com/tarrenceva and I'll send you one!
+Thanks for joining us! As a reward, we're giving out a free Optimism based NFT.
 
 ![tallyxoptimsim](../../.github/assets/tallyxoptimism.gif)
