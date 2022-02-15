@@ -20,3 +20,13 @@ deploy() {
         fi
     done
 }
+
+ensure() {
+    echo "${!1}"
+    if [ -z "${!1}" ]; then
+        echo "
+Variable \$$1 is not set. Did you miss a step?
+"
+        exit 1
+    fi
+}
