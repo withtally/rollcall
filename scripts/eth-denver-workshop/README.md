@@ -223,15 +223,32 @@ Get the proposal id:
 
 ```sh
 cast call "$GOVERNOR_ADDRESS" 'hashProposal(address[],uint256[],bytes[],bytes32)(uint256)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" $(cast keccak 'Accept pending admin') --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan
+export PROPOSAL_ID=<proposal id>
 ```
 
-Next we'll vote to support the proposal, replace `<proposal id>` with the output of the `cast call` above:
+Next we'll vote to support the proposal:
 
 ```sh
-cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' <proposal id> 1 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
+cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' $PROPOSAL_ID 1 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
 ```
 
-Once it has passed, we can execute the proposal:
+Lets check the proposal state:
+
+```sh
+cast call "$GOVERNOR_ADDRESS"  'state(uint256)(uint8)' $PROPOSAL_ID --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan
+```
+
+States:
+   Pending:    0
+   Active:     1
+   Canceled:   2
+   Defeated:   3
+   Succeeded:  4
+   Queued:     5
+   Expired:    6
+   Executed:   7
+
+Once it has passed (state 4), we can execute the proposal:
 
 ```sh
 cast send "$GOVERNOR_ADDRESS" 'execute(address[],uint256[],bytes[],bytes32)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" $(cast keccak 'Accept pending admin') --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
@@ -243,12 +260,13 @@ To finalize it, we can use Etherscans L2 to L1 Relay:
 
 https://kovan-optimistic.etherscan.io/messagerelayer
 
-Copy the transaction hash from above and click execute.
+Copy the transaction hash from above, make sure your metamask has an account with eth and has kovan network selected, and click execute.
 
 Finally, we can verify that our treasury is now controlled by the executor which is controlled by the Layer 2 DAO.
 
 ```sh
-cast call "$TREASURY_ADDRESS" 'admin()' --rpc-url="$KOVAN_RPC"
+cast call "$TREASURY_ADDRESS" 'admin()(address)' --rpc-url="$KOVAN_RPC"
+echo $EXECUTOR_ADDRESS
 ```
 
 Whew. We're done! You now have a treasury on Layer 1 that you can manage with a DAO on Layer 2. This means proposal creation and voting can be done fast and cheap!
