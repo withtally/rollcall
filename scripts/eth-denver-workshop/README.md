@@ -1,6 +1,6 @@
 # EthDenver Workshop
 
-In this exercise, we'll deploy a treasury [timelock](https://docs.openzeppelin.com/contracts/4.x/api/governance#TimelockController) contract to mainnet and a [OpenZeppelin Governor DAO](https://docs.openzeppelin.com/contracts/4.x/api/governance) contract to [Optimism](https://www.optimism.io/). We will then control the mainnet treasury with the Governor on Optimism. The goal is to demonstrate a hybrid model where a protocol can exist on mainnet but be managed from a rollup, enabling cheaper participation in governance decisions.
+In this exercise, we'll deploy a [treasury](../../src/Treasury.sol) contract to mainnet and a [L2Governor DAO](../../src/standards/L2Governor.sol) contract to [Optimism](https://www.optimism.io/). We will then control the mainnet treasury with the Governor on Optimism. The goal is to demonstrate a hybrid model where a protocol can exist on mainnet but be managed from a rollup, enabling cheaper participation in governance decisions.
 
 ## Sequence Diagram
 
@@ -72,14 +72,16 @@ brew install libusb
 ```sh
 > cast wallet new
 Successfully created new keypair.
-Address: 0xeb93Dbc9238901d2C28f2C523A61b7d2e93DcE19.
-Private Key: 020d80f7ed3351219c496dcc4c5bf8a981c207d531310c8d0992bdea8cf02be3.
+Address: <public key>
+Private Key: <private key>
 ```
+
+Replace `<public key>` and `<private key>` with the output of the `cast wallet new` command above:
 
 ```sh
 # Export private key to simplify the scripts
-export ETH_PUBLIC_KEY=0xeb93Dbc9238901d2C28f2C523A61b7d2e93DcE19
-export ETH_PRIVATE_KEY=020d80f7ed3351219c496dcc4c5bf8a981c207d531310c8d0992bdea8cf02be3
+export ETH_PUBLIC_KEY=<public key>
+export ETH_PRIVATE_KEY=<private key>
 ```
 
 Import your private key into metamask: https://metamask.zendesk.com/hc/en-us/articles/360015489331-How-to-import-an-Account
@@ -185,7 +187,7 @@ cast send 0x22F24361D548e5FaAfb36d1437839f080363982B 'depositERC20(address,addre
 Give it a couple mins, then you should be able to see them show up on the other side:
 
 ```sh
-echo https://kovan-optimistic.etherscan.io/token/$L2_TOKEN_ADDRESS#balances
+open https://kovan-optimistic.etherscan.io/token/$L2_TOKEN_ADDRESS#balances
 ```
 
 ✨ MAGIC ✨
@@ -220,13 +222,13 @@ cast send "$GOVERNOR_ADDRESS" 'propose(address[],uint256[],bytes[],string)' '[42
 Get the proposal id:
 
 ```sh
-cast call "$GOVERNOR_ADDRESS" 'hashProposal(address[],uint256[],bytes[],bytes32)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" $(cast keccak 'Accept pending admin') --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan)
+cast call "$GOVERNOR_ADDRESS" 'hashProposal(address[],uint256[],bytes[],bytes32)(uint256)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" $(cast keccak 'Accept pending admin') --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan
 ```
 
-Next we'll vote to support the proposal:
+Next we'll vote to support the proposal, replace `<proposal id>` with the output of the `cast call` above:
 
 ```sh
-cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' <proposal hash> 1 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
+cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' <proposal id> 1 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
 ```
 
 Once it has passed, we can execute the proposal:
