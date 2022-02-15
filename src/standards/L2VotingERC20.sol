@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {ERC20Permit} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import {ERC20Votes} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import {Lib_PredeployAddresses} from "../lib/Lib_PredeployAddresses.sol";
+import {ERC20} from "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import {ERC20Permit} from "openzeppelin-contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
+import {ERC20Votes} from "openzeppelin-contracts/token/ERC20/extensions/ERC20Votes.sol";
 
+import {Lib_PredeployAddresses} from "forge-optimism/lib/Lib_PredeployAddresses.sol";
 import {IL2VotingERC20} from "./IL2VotingERC20.sol";
 
 contract L2VotingERC20 is ERC20, ERC20Permit, ERC20Votes, IL2VotingERC20 {

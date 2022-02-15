@@ -234,7 +234,7 @@ cast send "$GOVERNOR_ADDRESS" 'castVote(uint256,uint8)' <proposal id> 1 --privat
 Once it has passed, we can execute the proposal:
 
 ```sh
-cast send "$GOVERNOR_ADDRESS" 'execute(address[],uint256[],bytes[],bytes32)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" 0x50d71468028f798bd6eb41e349f0919e2fbae974c3714d9343b822daf1541810 --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
+cast send "$GOVERNOR_ADDRESS" 'execute(address[],uint256[],bytes[],bytes32)' '[4200000000000000000000000000000000000007]' '[0]' "[$(cast calldata 'sendMessage(address,bytes,uint32)' $EXECUTOR_ADDRESS $(cast calldata 'execute(address,bytes)' $TREASURY_ADDRESS $(cast calldata 'acceptPendingAdmin()')) 1000000 | cut -c 3-)]" $(cast keccak 'Accept pending admin') --private-key $ETH_PRIVATE_KEY --rpc-url $OPTIMISM_KOVAN_RPC --chain optimism-kovan --confirmations 1
 ```
 
 Now our transaction is on its way back to mainnet. For Kovan, this takes 60 seconds. The final step will be executing the bridged transaction on mainnet:

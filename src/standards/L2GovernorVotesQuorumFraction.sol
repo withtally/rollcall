@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./L2GovernorVotes.sol";
+import {L2GovernorVotes} from "./L2GovernorVotes.sol";
 
 /**
  * @dev Extension of {Governor} for voting weight extraction from an {ERC20Votes} token and a quorum expressed as a
@@ -14,7 +14,10 @@ import "./L2GovernorVotes.sol";
 abstract contract L2GovernorVotesQuorumFraction is L2GovernorVotes {
     uint256 private _quorumNumerator;
 
-    event QuorumNumeratorUpdated(uint256 oldQuorumNumerator, uint256 newQuorumNumerator);
+    event QuorumNumeratorUpdated(
+        uint256 oldQuorumNumerator,
+        uint256 newQuorumNumerator
+    );
 
     /**
      * @dev Initialize quorum as a fraction of the token's total supply.
@@ -44,8 +47,16 @@ abstract contract L2GovernorVotesQuorumFraction is L2GovernorVotes {
     /**
      * @dev Returns the quorum for a block number, in terms of number of votes: `supply * numerator / denominator`.
      */
-    function quorum(uint256 blockNumber) public view virtual override returns (uint256) {
-        return (token.getPastTotalSupply(blockNumber) * quorumNumerator()) / quorumDenominator();
+    function quorum(uint256 blockNumber)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        return
+            (token.getPastTotalSupply(blockNumber) * quorumNumerator()) /
+            quorumDenominator();
     }
 
     /**
@@ -58,7 +69,11 @@ abstract contract L2GovernorVotesQuorumFraction is L2GovernorVotes {
      * - Must be called through a governance proposal.
      * - New numerator must be smaller or equal to the denominator.
      */
-    function updateQuorumNumerator(uint256 newQuorumNumerator) external virtual onlyGovernance {
+    function updateQuorumNumerator(uint256 newQuorumNumerator)
+        external
+        virtual
+        onlyGovernance
+    {
         _updateQuorumNumerator(newQuorumNumerator);
     }
 
@@ -71,7 +86,10 @@ abstract contract L2GovernorVotesQuorumFraction is L2GovernorVotes {
      *
      * - New numerator must be smaller or equal to the denominator.
      */
-    function _updateQuorumNumerator(uint256 newQuorumNumerator) internal virtual {
+    function _updateQuorumNumerator(uint256 newQuorumNumerator)
+        internal
+        virtual
+    {
         require(
             newQuorumNumerator <= quorumDenominator(),
             "GovernorVotesQuorumFraction: quorumNumerator over quorumDenominator"

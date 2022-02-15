@@ -25,14 +25,15 @@ import "openzeppelin-contracts/governance/IGovernor.sol";
  */
 abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
     using SafeCast for uint256;
-    using Timers for Timers.BlockNumber;
+    using Timers for Timers.Timestamp;
 
     bytes32 public constant BALLOT_TYPEHASH =
         keccak256("Ballot(uint256 proposalId,uint8 support)");
 
     struct ProposalCore {
-        Timers.BlockNumber voteStart;
-        Timers.BlockNumber voteEnd;
+        uint64 snapshot;
+        Timers.Timestamp voteStart;
+        Timers.Timestamp voteEnd;
         bool executed;
         bool canceled;
     }
@@ -141,13 +142,13 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
             return ProposalState.Canceled;
         }
 
-        uint256 snapshot = proposalSnapshot(proposalId);
+        uint256 start = proposalStart(proposalId);
 
-        if (snapshot == 0) {
+        if (start == 0) {
             revert("Governor: unknown proposal id");
         }
 
-        if (snapshot >= block.timestamp) {
+        if (start >= block.timestamp) {
             return ProposalState.Pending;
         }
 
@@ -165,6 +166,18 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
     }
 
     /**
+     * @dev Starting time of the proposal.
+     */
+    function proposalStart(uint256 proposalId)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return _proposals[proposalId].voteStart.getDeadline();
+    }
+
+    /**
      * @dev See {IGovernor-proposalSnapshot}.
      */
     function proposalSnapshot(uint256 proposalId)
@@ -174,7 +187,7 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
         override
         returns (uint256)
     {
-        return _proposals[proposalId].voteStart.getDeadline();
+        return _proposals[proposalId].snapshot;
     }
 
     /**
@@ -264,10 +277,11 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
             "Governor: proposal already exists"
         );
 
-        uint64 snapshot = block.timestamp.toUint64() + votingDelay().toUint64();
-        uint64 deadline = snapshot + votingPeriod().toUint64();
+        uint64 start = block.timestamp.toUint64() + votingDelay().toUint64();
+        uint64 deadline = start + votingPeriod().toUint64();
 
-        proposal.voteStart.setDeadline(snapshot);
+        proposal.snapshot = block.number.toUint64() - 1;
+        proposal.voteStart.setDeadline(start);
         proposal.voteEnd.setDeadline(deadline);
 
         emit ProposalCreated(
@@ -277,7 +291,7 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
             values,
             new string[](targets.length),
             calldatas,
-            snapshot,
+            start,
             deadline,
             description
         );
@@ -431,7 +445,7 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
             "Governor: vote not currently active"
         );
 
-        uint256 weight = getVotes(account, proposal.voteStart.getDeadline());
+        uint256 weight = getVotes(account, proposal.snapshot);
         _countVote(proposalId, account, support, weight);
 
         emit VoteCast(account, proposalId, support, weight, reason);

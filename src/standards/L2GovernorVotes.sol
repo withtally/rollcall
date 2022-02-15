@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-import "openzeppelin-contracts/governance/utils/IVotes.sol";
+import {IVotes} from "openzeppelin-contracts/governance/utils/IVotes.sol";
 
 import {L2Governor} from "./L2Governor.sol";
 
@@ -22,7 +22,13 @@ abstract contract L2GovernorVotes is L2Governor {
     /**
      * Read the voting weight from the token's built in snapshot mechanism (see {IGovernor-getVotes}).
      */
-    function getVotes(address account, uint256 blockNumber) public view virtual override returns (uint256) {
+    function getVotes(address account, uint256 blockNumber)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
         return token.getPastVotes(account, blockNumber);
     }
 }
