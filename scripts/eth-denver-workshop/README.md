@@ -104,7 +104,9 @@ Now we're ready!
 Deploy the `L1VotingERC20` contract. This contract implemented [ERC20Votes.sol](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/ERC20Votes.sol), which enables onchain governance. It is necessary to avoid several different governance attacks.
 
 ```sh
-NAME="RollCallDAO" SYMBOL="DAO" ./deploy-l1-token.sh
+export NAME="RollCallDAO"
+export SYMBOL="DAO" 
+./deploy-l1-token.sh
 export L1_TOKEN_ADDRESS=<L1VotingERC20Address>
 ```
 
@@ -142,7 +144,9 @@ Next up, we want to deploy a Governor contract to Optimism that we can use to cr
 The first thing we'll need is a Layer 2 token to vote with. To support this, we'll deploy a ERC20 voting token that will hold bridged token state.
 
 ```sh
-NAME="RollCallDAO" SYMBOL="DAO" ./deploy-l2-token.sh
+export NAME="RollCallDAO" 
+export SYMBOL="DAO" 
+./deploy-l2-token.sh
 export L2_TOKEN_ADDRESS=<L2VotingERC20Address>
 ```
 
