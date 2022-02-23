@@ -31,7 +31,6 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
         keccak256("Ballot(uint256 proposalId,uint8 support)");
 
     struct ProposalCore {
-        uint64 snapshot;
         Timers.Timestamp voteStart;
         Timers.Timestamp voteEnd;
         bool executed;
@@ -142,7 +141,7 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
             return ProposalState.Canceled;
         }
 
-        uint256 start = proposalStart(proposalId);
+        uint256 start = proposalSnapshot(proposalId);
 
         if (start == 0) {
             revert("Governor: unknown proposal id");
@@ -166,18 +165,6 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
     }
 
     /**
-     * @dev Starting time of the proposal.
-     */
-    function proposalStart(uint256 proposalId)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
-        return _proposals[proposalId].voteStart.getDeadline();
-    }
-
-    /**
      * @dev See {IGovernor-proposalSnapshot}.
      */
     function proposalSnapshot(uint256 proposalId)
@@ -187,7 +174,7 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
         override
         returns (uint256)
     {
-        return _proposals[proposalId].snapshot;
+        return _proposals[proposalId].voteStart.getDeadline();
     }
 
     /**
@@ -280,7 +267,6 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
         uint64 start = block.timestamp.toUint64() + votingDelay().toUint64();
         uint64 deadline = start + votingPeriod().toUint64();
 
-        proposal.snapshot = block.number.toUint64() - 1;
         proposal.voteStart.setDeadline(start);
         proposal.voteEnd.setDeadline(deadline);
 
@@ -445,7 +431,7 @@ abstract contract L2Governor is Context, ERC165, EIP712, IGovernor {
             "Governor: vote not currently active"
         );
 
-        uint256 weight = getVotes(account, proposal.snapshot);
+        uint256 weight = getVotes(account, proposal.voteStart.getDeadline());
         _countVote(proposalId, account, support, weight);
 
         emit VoteCast(account, proposalId, support, weight, reason);

@@ -3,12 +3,12 @@ pragma solidity ^0.8.9;
 
 import {ERC20} from "openzeppelin-contracts/token/ERC20/ERC20.sol";
 import {ERC20Permit} from "openzeppelin-contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import {ERC20Votes} from "openzeppelin-contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 import {Lib_PredeployAddresses} from "forge-optimism/lib/Lib_PredeployAddresses.sol";
+import {L2ERC20Votes} from "./L2ERC20Votes.sol";
 import {IL2VotingERC20} from "./IL2VotingERC20.sol";
 
-contract L2VotingERC20 is ERC20, ERC20Permit, ERC20Votes, IL2VotingERC20 {
+contract L2VotingERC20 is ERC20, ERC20Permit, L2ERC20Votes, IL2VotingERC20 {
     address public l1Token;
     address public l2Bridge;
 
@@ -62,20 +62,20 @@ contract L2VotingERC20 is ERC20, ERC20Permit, ERC20Votes, IL2VotingERC20 {
         address from,
         address to,
         uint256 amount
-    ) internal override(ERC20, ERC20Votes) {
+    ) internal override(ERC20, L2ERC20Votes) {
         super._afterTokenTransfer(from, to, amount);
     }
 
     function _mint(address to, uint256 amount)
         internal
-        override(ERC20, ERC20Votes)
+        override(ERC20, L2ERC20Votes)
     {
         super._mint(to, amount);
     }
 
     function _burn(address account, uint256 amount)
         internal
-        override(ERC20, ERC20Votes)
+        override(ERC20, L2ERC20Votes)
     {
         super._burn(account, amount);
     }
