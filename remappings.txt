@@ -1,3 +1,1 @@
-forge-optimism/=lib/forge-optimism/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/contracts
-ds-test/=lib/ds-test/src/
