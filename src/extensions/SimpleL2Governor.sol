@@ -10,7 +10,7 @@ import {L2GovernorCountingSimple} from "../standards/L2GovernorCountingSimple.so
 import {L2GovernorVotes} from "../standards/L2GovernorVotes.sol";
 import {L2GovernorVotesQuorumFraction} from "../standards/L2GovernorVotesQuorumFraction.sol";
 
-contract SimpleL2Governor is
+abstract contract SimpleL2Governor is
     L2Governor,
     L2GovernorSettings,
     L2GovernorCountingSimple,

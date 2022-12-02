@@ -90,9 +90,9 @@ abstract contract IL1Governor is IERC165 {
      * @dev Hashing function used to (re)build the proposal id from the proposal details..
      */
     function hash(
-        address[] calldata targets,
-        uint256[] calldata values,
-        bytes[] calldata calldatas,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
         bytes32 descriptionHash
     ) public pure virtual returns (bytes32);
 
